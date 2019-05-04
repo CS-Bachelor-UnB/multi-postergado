@@ -19,4 +19,4 @@ Auxiliary methods. Should these be protected/private?
 */
 int retrieve_queue_id();
 char * parse_clarg_filename(int argc, char *argv[]);
-const int parse_clarg_delay(char *argv[]);
+const int parse_clarg_delay(int argc, char *argv[]);
