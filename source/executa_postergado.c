@@ -1,5 +1,8 @@
 #include "executa_postergado.h"
 
+#define file_pos 1
+#define delay_pos 2
+
 /*
 Data Structure for the message to be exchanged between the job_scheduler ('escalonador')
 and the delay_execution ('executa_postergado') modules
@@ -7,7 +10,7 @@ and the delay_execution ('executa_postergado') modules
 struct message
 {
    long pid;
-   char filename[50];
+   char * filename;
    int delta_delay;
 };
 
@@ -33,21 +36,47 @@ int retrieve_queue_id()
    }
 
    else
-   {
       return queue_id;
-   }
 }
 
-char* parse_clarg_filename(char *argv[])
+char * parse_clarg_filename(int argc, char *argv[])
 {
    /*
    Returns a string with the filename passed as an argument in the command line, exits if input is not found.
    FUTURE feature:
       + suggests files in the project examples folder, exits after a number of failed attempts.
    */
+   char * filename;
+   extern int errno;
+   int valid;
+
+   for( int optindex = 1; optindex < argc && argv[optindex][0] == '-'; optindex++ )
+   {
+      // finds the '-f flag'
+      if( argv[optindex][1] == 'f' )
+      {
+         filename = argv[optindex+1];
+
+         // checks whether the file exists
+         if(valid = access(filename, F_OK) != -1)
+            return filename;
+         
+         // if the file does not exist, prints error and exits with the error code
+         else
+         {
+            perror("Error while parsing the filename argument");
+            exit(errno);
+         }
+      }
+   }
+
+   // the '-f' flag was not found. Thus, prints error and exits
+   printf("\nNo filename flag '-f' found. The pattern < -f filename > must be followed\n");
+   exit(1);
+      
 }
 
-int* parse_clarg_delay(char *argv[])
+const int parse_clarg_delay(char *argv[])
 {
    /*
    Returns an integer that represents the delay in seconds passed as an argument in the command line,
@@ -55,6 +84,19 @@ int* parse_clarg_delay(char *argv[])
    FUTURE feature:
       + sets a default delay if none given.
    */
+   // int delay = argv[delay_pos];
+   // extern int errno;
+   // int valid;
+
+   // if(valid = access(filename, F_OK) != -1)
+   //    return filename;
+      
+   // else
+   // {
+   //    perror("Error while parsing the file name argument");
+   //    exit(errno);
+   // }
+  
 }
 
 int main(int argc, char *argv[])
@@ -62,12 +104,14 @@ int main(int argc, char *argv[])
    int queue_id, fd[2];
    message_t message_send; 
 
-   while(true)
-      if(queue_id = retrieve_queue_id() > 0)
-         break;
+   message_send.filename = parse_clarg_filename(argc, argv);
+   // message_send.delta_delay = parse_clarl_delay(argv);
+   
+   // while(true)
+   //    if(queue_id = retrieve_queue_id() > 0)
+   //       break;
 
-   message_send.filename = parse_clarg_filename(argv);
-   message_send.delta_delay = parse_clarl_delay(argv);
+   printf("Queue_id: %d.a\nOK!", queue_id);
 
    exit(0);
 }
