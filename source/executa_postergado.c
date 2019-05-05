@@ -7,7 +7,7 @@ and the delay_execution ('executa_postergado') modules
 struct message
 {
    long pid;
-   const char * filename;
+   char filename[50];
    unsigned int delta_delay;
 };
 
@@ -129,7 +129,8 @@ unsigned int parse_clarg_delay(int argc, char *argv[])
    }
 
    // the '-f' flag was not found. Thus, prints error and exits
-   printf( "CL_PARSER_ERROR: FlagError\n\tNo delay flag '-d' found.\n\tThe pattern < -d delay (in seconds) > must be followed\n" );
+   printf( "CL_PARSER_ERROR: FlagError\n\tNo delay flag '-d' found."
+           "\n\tThe pattern < -d delay (in seconds) > must be followed\n" );
    exit(1);
 }
 
@@ -139,7 +140,7 @@ int main(int argc, char *argv[])
    unsigned int queue_id;
    message_t message_to_send;
 
-   message_to_send.filename = parse_clarg_filename(argc, argv);
+   strcpy(message_to_send.filename, parse_clarg_filename(argc, argv));
    message_to_send.delta_delay = parse_clarg_delay(argc, argv);
    
    queue_id = retrieve_queue_id();
