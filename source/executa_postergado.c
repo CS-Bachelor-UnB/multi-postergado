@@ -86,7 +86,7 @@ const char * parse_clarg_filename( int argc, char *argv[] )
    }
 
    // the '-f' flag was not found. Thus, prints error and exits
-   printf( "\nCL_PARSER_ERROR: FlagError\n\tNo filename flag '-f' found.\n\tThe pattern < -f filename > must be followed\n" );
+   printf( "CL_PARSER_ERROR: FlagError\n\tNo filename flag '-f' found.\n\tThe pattern < -f filename > must be followed\n" );
    exit(1);
       
 }
@@ -104,6 +104,12 @@ unsigned int parse_clarg_delay(int argc, char *argv[])
       // finds the '-d' flag
       if( argv[optindex][0] == '-' && argv[optindex][1] == 'd' )
       {
+         // checks if an argument was given after the flag
+         if( optindex+1 >= argc )
+         {
+            printf("CL_PARSER_ERROR: ValueError\n\tThere is no argument for the '-d' flag.\n");
+            exit(1);
+         }
 
          // checks if the arg is digit
          if( strspn(argv[optindex+1], "0123456789") == strlen(argv[optindex+1]) )
@@ -115,14 +121,15 @@ unsigned int parse_clarg_delay(int argc, char *argv[])
 
          else
          {
-            printf("\nCL_PARSER_ERROR: TypeError\n\tThe argument for the '-d' flag must contain only digits.\n");
+            printf("CL_PARSER_ERROR: TypeError\n\tThe argument for the '-d' flag must contain only digits.\n");
+            exit(1);
          }
          
       }
    }
 
    // the '-f' flag was not found. Thus, prints error and exits
-   printf( "\nCL_PARSER_ERROR: FlagError\n\tNo delay flag '-d' found.\n\tThe pattern < -d delay (in seconds) > must be followed\n" );
+   printf( "CL_PARSER_ERROR: FlagError\n\tNo delay flag '-d' found.\n\tThe pattern < -d delay (in seconds) > must be followed\n" );
    exit(1);
 }
 

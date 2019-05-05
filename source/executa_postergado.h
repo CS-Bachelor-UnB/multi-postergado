@@ -11,10 +11,14 @@
 
 typedef struct message message_t;
 
+/*
+Main methods
+*/
+int retrieve_queue_id();
+bool send_message( message_t message_to_send, int queue_id );
 
 /*
 Auxiliary methods. Should these be protected/private?
 */
-int retrieve_queue_id();
 const char * parse_clarg_filename(int argc, char *argv[]);
 unsigned int parse_clarg_delay(int argc, char *argv[]);
