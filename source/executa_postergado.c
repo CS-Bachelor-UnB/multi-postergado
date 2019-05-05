@@ -1,8 +1,5 @@
 #include "executa_postergado.h"
 
-#define file_pos 1
-#define delay_pos 2
-
 /*
 Data Structure for the message to be exchanged between the job_scheduler ('escalonador')
 and the delay_execution ('executa_postergado') modules
@@ -10,13 +7,12 @@ and the delay_execution ('executa_postergado') modules
 struct message
 {
    long pid;
-   char * filename;
-   int delta_delay;
+   const char * filename;
+   unsigned int delta_delay;
 };
 
-
 /*
-Auxiliary methods for the delay_execution module ------------------------------------------------------
+Main methods for the delay_execution module ------------------------------------------------------
 */
 int retrieve_queue_id()
 {
@@ -28,18 +24,38 @@ int retrieve_queue_id()
         The interruption must be treated in the job_scheduler module.
    */
    int queue_id;
+   extern int errno;
 
-   if (( queue_id = msgget( 0x1200, (IPC_CREAT|0x1B6) ) ) < 0)
+   if ( ( queue_id = msgget( 0x1200, (IPC_CREAT|0x1B6 ) ) ) < 0 )
    {
-     printf( "Error while retrieving the queue_id\n" );
-     return 0;
+     perror( "\nRETRIEVE_QUEUE_ERROR: Error while retrieving the queue_id\n" );
+     exit( errno );
    }
 
    else
       return queue_id;
 }
 
-char * parse_clarg_filename( int argc, char *argv[] )
+bool send_message( message_t message_to_send, int queue_id )
+{
+   /**/
+   extern int errno;
+
+   if( msgsnd( queue_id, &message_to_send, sizeof( message_to_send ) - sizeof( long ), 0 ) < 0 )
+   {
+      // prints error message
+      perror("SEND_MESSAGE_ERROR");
+      exit( errno );
+   }
+
+   else
+      return true;
+}
+
+/*
+Auxiliary methods for the delay_execution module ------------------------------------------------------
+*/
+const char * parse_clarg_filename( int argc, char *argv[] )
 {
    /*
    Returns a string with the filename passed as an argument in the command line, exits if input is not found.
@@ -63,19 +79,19 @@ char * parse_clarg_filename( int argc, char *argv[] )
          // if the file does not exist, prints error and exits with the error code
          else
          {
-            perror( "Error while parsing the filename argument" );
+            perror( "CL_PARSER_ERROR (filename)" );
             exit( errno );
          }
       }
    }
 
    // the '-f' flag was not found. Thus, prints error and exits
-   printf( "\nNo filename flag '-f' found. The pattern < -f filename > must be followed\n" );
+   printf( "\nCL_PARSER_ERROR: FlagError\n\tNo filename flag '-f' found.\n\tThe pattern < -f filename > must be followed\n" );
    exit(1);
       
 }
 
-const int parse_clarg_delay(int argc, char *argv[])
+unsigned int parse_clarg_delay(int argc, char *argv[])
 {
    /*
    Returns an integer that represents the delay in seconds passed as an argument in the command line,
@@ -112,20 +128,21 @@ const int parse_clarg_delay(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
-   // int queue_id, fd[2];
-   message_t message_send; 
+   // int fd[2];
+   unsigned int queue_id;
+   message_t message_to_send;
 
-   message_send.filename = parse_clarg_filename(argc, argv);
-   message_send.delta_delay = parse_clarg_delay(argc, argv);
+   message_to_send.filename = parse_clarg_filename(argc, argv);
+   message_to_send.delta_delay = parse_clarg_delay(argc, argv);
    
-   // while(true)
-   //    if(queue_id = retrieve_queue_id() > 0)
-   //       break;
+   queue_id = retrieve_queue_id();
+   send_message(message_to_send, queue_id);
 
    printf("\nOK!\n");
 
    exit(0);
 }
+
 /*  
    pid = fork();
 
@@ -136,7 +153,7 @@ int main(int argc, char *argv[])
    msgsnd(queue_id, &mensagem_env, sizeof(mensagem_env)-sizeof(long), 0);
    exit (0);
    }
-   msgsnd(queue_id, &message_send, sizeof(message_send)-sizeof(long), 0);      
+   msgsnd(queue_id, &message_to_send, sizeof(message_to_send)-sizeof(long), 0);      
    msgrcv(queue_id, &mensagem_rec, sizeof(mensagem_rec)-sizeof(long), 0, 0);
    printf("mensagem recebida = %ld %s\n", mensagem_rec.pid, mensagem_rec.msg);
    // wait(&estado);
