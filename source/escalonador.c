@@ -60,7 +60,7 @@ int main( int argc, char *argv[] )
     queue_id = retrieve_queue_id();
     if( receive_message( &message_received, queue_id ) )
         printf("SUCCESS:"
-             "\n\tFile '%s' successfully read into the execution stack "
+             "\n\tFile '%s' successfully loaded from the execution queue "
              "\n\t(minimum delay of %d seconds)\n",message_received.filename,
              message_received.delta_delay);
 }

@@ -146,7 +146,7 @@ int main(int argc, char *argv[])
    queue_id = retrieve_queue_id();
    if( send_message(message_to_send, queue_id) )
       printf("SUCCESS:"
-             "\n\tFile '%s' successfully palced in the execution stack "
+             "\n\tFile '%s' successfully placed in the execution queue "
              "\n\t(minimum delay of %d seconds)\n",message_to_send.filename, message_to_send.delta_delay);
 
    exit(0);
