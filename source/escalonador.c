@@ -1,4 +1,5 @@
 #include "escalonador.h"
+#define TIME_OUT 100
 
 /*
 Data Structure for the message to be exchanged between the job_scheduler ('escalonador')
@@ -9,6 +10,22 @@ struct message
    long pid;
    const char filename[50];
    unsigned int delta_delay;
+};
+
+struct execution_entry
+{
+   char *filename;
+   unsigned int delay;
+   execution_entry_t *next;
+};
+
+struct execution_queue
+{
+   /*
+      single-linked list
+   */
+   unsigned int len;
+   execution_entry_t *head;
 };
 
 /*
@@ -120,7 +137,8 @@ int main( int argc, char *argv[] )
 {
    const char * topology;
    message_t message_received;
-   unsigned int queue_id, previous_head;
+   execution_queue_t exec_queue;
+   unsigned int queue_id, previous_timer;
 
    signal(SIGALRM, alarm_handler);
    topology = parse_clarg_topology(argc, argv);
@@ -133,7 +151,49 @@ int main( int argc, char *argv[] )
              "\n\t(minimum delay of %d seconds)\n",message_received.filename,
              message_received.delta_delay);
       
-      previous_head = alarm(message_received.delta_delay);
+      // now we add the new entry to the execution queue
+      if( ( exec_queue.len > 0 ) && ( previous_timer = alarm( TIME_OUT ) > 0 ) )
+      {
+         /*
+            if the execution_queue is not empty and there is a timer in countdown
+         */
+         if( previous_timer > message_received.delta_delay )
+         {
+            /*
+               check if the delay for the new entry is smaller than the current one (already in countdown)
+               if so,   i) set the new entry as the new head;
+                        ii) set the remaining delay of the previous_timer;
+                        iii) fire the alarm with the delay of the new head;
+               !!! we will always assume the execution queue is sorted (MAKE SURE IT IS) !!!
+            */
+            
+         }
+
+         else
+         {
+            /* 
+               if the delay for the new entry is bigger or equal to the current one (already in countdown)
+                  i) refire the previous_timer
+                  ii) add the new entry into palce (SORTED!),
+            */
+         }
+         
+      }
+
+      else if ( exec_queue.len == 0 )
+      {
+         /*
+            no other process is waiting in the execution_queue
+            add the new entry
+         */
+      }
+
+      else
+      {
+         /* !! if this part is reached, it's likely that there has been some sort of unwanted behavior !! */
+      }
+      
+      
       pause();
    }
 }

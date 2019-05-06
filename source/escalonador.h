@@ -11,3 +11,5 @@
 #include<string.h>
 
 typedef struct message message_t;
+typedef struct execution_entry execution_entry_t;
+typedef struct execution_queue execution_queue_t;
