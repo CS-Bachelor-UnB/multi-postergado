@@ -157,19 +157,3 @@ int main(int argc, char *argv[])
 
    exit(0);
 }
-
-/*  
-   pid = fork();
-
-   if (pid == 0)
-   {
-   mensagem_env.pid = getpid();
-   strcpy(mensagem_env.msg, "teste de mensagem");
-   msgsnd(queue_id, &mensagem_env, sizeof(mensagem_env)-sizeof(long), 0);
-   exit (0);
-   }
-   msgsnd(queue_id, &message_to_send, sizeof(message_to_send)-sizeof(long), 0);      
-   msgrcv(queue_id, &mensagem_rec, sizeof(mensagem_rec)-sizeof(long), 0, 0);
-   printf("mensagem recebida = %ld %s\n", mensagem_rec.pid, mensagem_rec.msg);
-   // wait(&estado);
-*/
