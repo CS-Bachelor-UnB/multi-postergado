@@ -56,6 +56,12 @@ bool receive_message( message_t *message_received, int queue_id )
 Auxiliary methods for the delay_execution module ------------------------------------------------------
 */
 
+static void alarm_handler(int signo)
+{
+   printf("Caught a signal to delay\n");
+   exit(EXIT_SUCCESS);
+}
+
 bool contains_string( const char ** array, int array_size, char * string )
 {
    /**/
@@ -112,16 +118,22 @@ const char * parse_clarg_topology( int argc, char *argv[] )
 
 int main( int argc, char *argv[] )
 {
-   unsigned int queue_id;
    const char * topology;
    message_t message_received;
+   unsigned int queue_id, previous_head;
 
+   signal(SIGALRM, alarm_handler);
    topology = parse_clarg_topology(argc, argv);
    queue_id = retrieve_queue_id();
    
    if( receive_message( &message_received, queue_id ) )
+   {
       printf("SUCCESS:"
              "\n\tFile '%s' successfully loaded from the execution queue "
              "\n\t(minimum delay of %d seconds)\n",message_received.filename,
              message_received.delta_delay);
+      
+      previous_head = alarm(message_received.delta_delay);
+      pause();
+   }
 }
