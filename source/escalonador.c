@@ -52,15 +52,76 @@ bool receive_message( message_t *message_received, int queue_id )
       return true;
 }
 
+/*
+Auxiliary methods for the delay_execution module ------------------------------------------------------
+*/
+
+bool contains_string( const char ** array, int array_size, char * string )
+{
+   /**/
+   for( int i = 0; i < array_size; i++ )
+      if( !strcmp(array[i], string ) )
+         return true;
+      
+   return false;
+         
+}
+
+const char * parse_clarg_topology( int argc, char *argv[] )
+{
+   /*
+   Returns a string with the filename passed as an argument in the command line, exits if input is not found.
+   FUTURE feature:
+      + suggests files in the project examples folder, exits after a number of failed attempts.
+   */
+   char * topology;
+   const char * possible_topologies[3] = {"fattree", "torus", "hypercube"};
+
+   for( int optindex = 1; optindex < argc; optindex++ )
+   {
+      // finds the '-f flag'
+      if( argv[optindex][0] == '-' && argv[optindex][1] == 't' )
+      {
+         if( optindex+1 >= argc )
+         {
+            printf("CL_PARSER_ERROR: ValueError\n\tThere is no argument for the '-t' flag.\n");
+            exit(1);
+         }
+
+         topology = argv[optindex+1];
+
+         // checks whether the file exists
+         if( contains_string(possible_topologies, 3, topology) )
+            return topology;
+         
+         // if the file does not exist, prints error and exits with the error code
+         else
+         {
+            printf( "CL_PARSER_ERROR (topology): topology '%s' not supported\n", topology );
+            exit(1);
+         }
+      }
+   }
+
+   // the '-f' flag was not found. Thus, prints error and exits
+   printf( "CL_PARSER_ERROR: FlagError\n\tNo TOPOLOGY_FLAG '-t' found.\n\tThe pattern < -t topology > must be followed\n" );
+   exit(1);
+      
+}
+
+
 int main( int argc, char *argv[] )
 {
-    message_t message_received;
-    unsigned int queue_id;
+   unsigned int queue_id;
+   const char * topology;
+   message_t message_received;
 
-    queue_id = retrieve_queue_id();
-    if( receive_message( &message_received, queue_id ) )
-        printf("SUCCESS:"
-             "\n\tFile '%s' successfully read into the execution stack "
+   topology = parse_clarg_topology(argc, argv);
+   queue_id = retrieve_queue_id();
+   
+   if( receive_message( &message_received, queue_id ) )
+      printf("SUCCESS:"
+             "\n\tFile '%s' successfully loaded from the execution queue "
              "\n\t(minimum delay of %d seconds)\n",message_received.filename,
              message_received.delta_delay);
 }
