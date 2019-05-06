@@ -70,6 +70,12 @@ const char * parse_clarg_filename( int argc, char *argv[] )
       // finds the '-f flag'
       if( argv[optindex][0] == '-' && argv[optindex][1] == 'f' )
       {
+         if( optindex+1 >= argc )
+         {
+            printf("CL_PARSER_ERROR: ValueError\n\tThere is no argument for the '-d' flag.\n");
+            exit(1);
+         }
+         
          filename = argv[optindex+1];
 
          // checks whether the file exists
