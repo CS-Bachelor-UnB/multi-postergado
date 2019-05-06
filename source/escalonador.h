@@ -6,6 +6,8 @@
 #include<sys/types.h>
 #include<sys/ipc.h>
 #include<sys/msg.h>
+#include<signal.h>
+#include<wait.h>
 #include<string.h>
 
 typedef struct message message_t;
