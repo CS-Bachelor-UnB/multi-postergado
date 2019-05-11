@@ -70,12 +70,6 @@ const char * parse_clarg_filename( int argc, char *argv[] )
       // finds the '-f flag'
       if( argv[optindex][0] == '-' && argv[optindex][1] == 'f' )
       {
-         if( optindex+1 >= argc )
-         {
-            printf("CL_PARSER_ERROR: ValueError\n\tThere is no argument for the '-d' flag.\n");
-            exit(1);
-         }
-         
          filename = argv[optindex+1];
 
          // checks whether the file exists
@@ -146,6 +140,7 @@ int main(int argc, char *argv[])
    unsigned int queue_id;
    message_t message_to_send;
 
+   message_to_send.pid = getpid();
    strcpy(message_to_send.filename, parse_clarg_filename(argc, argv));
    message_to_send.delta_delay = parse_clarg_delay(argc, argv);
    
@@ -157,3 +152,19 @@ int main(int argc, char *argv[])
 
    exit(0);
 }
+
+/*  
+   pid = fork();
+
+   if (pid == 0)
+   {
+   mensagem_env.pid = getpid();
+   strcpy(mensagem_env.msg, "teste de mensagem");
+   msgsnd(queue_id, &mensagem_env, sizeof(mensagem_env)-sizeof(long), 0);
+   exit (0);
+   }
+   msgsnd(queue_id, &message_to_send, sizeof(message_to_send)-sizeof(long), 0);      
+   msgrcv(queue_id, &mensagem_rec, sizeof(mensagem_rec)-sizeof(long), 0, 0);
+   printf("mensagem recebida = %ld %s\n", mensagem_rec.pid, mensagem_rec.msg);
+   // wait(&estado);
+*/

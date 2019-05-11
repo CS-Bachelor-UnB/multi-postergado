@@ -29,6 +29,124 @@ struct execution_queue
 };
 
 /*
+Single-linked list methods for the delay_execution module ------------------------------------------------------
+*/
+execution_entry_t * createEntry(const char *filename, unsigned int delay)
+{
+   /* 
+   Returns pointer to the new created entry of the single-linked list 
+   */
+   execution_entry_t *temp; 
+   
+   temp = (execution_entry_t *) malloc(sizeof(execution_entry_t));
+   temp->filename = (char*) filename;
+   temp->delay = delay;
+   temp->next = NULL;
+   
+   return temp;
+}
+
+execution_queue_t * createLinkedList()
+{
+   /* 
+   Returns pointer to the new created single-linked list 
+   */
+   execution_queue_t *list; 
+   
+   list = (execution_queue_t *) malloc(sizeof(execution_queue_t));
+   list->len = 0;
+   list->head = NULL;
+   
+   return list;
+}
+
+int addEntry(execution_entry_t * entry, execution_queue_t * list)
+{
+   /* 
+   Returns 0 if adding to the list was successfull, and -1 if it fails
+   */
+   if ( list->len == 0 )
+   {
+     list->head = entry;
+     return 0;
+   }
+   
+   execution_entry_t *aux = list->head;
+   execution_entry_t *aux_b = list->head;
+   
+   while ( aux != NULL )
+   {
+     if ( aux->delay > entry->delay )
+     {
+       if (aux == aux_b)
+       {
+         list->head = entry;
+         entry->next = aux;
+       }
+       else
+       {
+         aux_b->next = entry;
+         entry->next = aux;
+       }
+       
+       return 0;
+     }
+
+     aux_b = aux;
+     aux = aux->next;
+
+     if ( aux == NULL )
+     {
+       aux_b->next = entry;
+       entry->next = NULL;
+       return 0;
+     }
+   }
+
+   return -1;
+
+}
+
+int removeEntry(execution_entry_t * entry, execution_queue_t *list)
+{
+   /* 
+   Returns 0 if removing from list was successfull, and -1 if it fails
+   */
+      if ( list->len == 0 )
+   {
+     return -1;
+   }
+   
+   execution_entry_t *aux = list->head;
+   execution_entry_t *aux_b = list->head;
+   
+   while ( aux != NULL )
+   {
+     if ( aux == entry )
+     {
+       if (aux == aux_b)
+       {
+         list->head = entry->next;
+         entry->next = NULL;
+       }
+       else
+       {
+         aux_b->next = entry->next;
+         entry->next = NULL;
+       }
+       
+       free(entry);
+       return 0;
+     }
+
+     aux_b = aux;
+     aux = aux->next;
+   }
+
+   return -1;
+}
+
+/*
 Main methods for the delay_execution module ------------------------------------------------------
 */
 int retrieve_queue_id()
@@ -137,7 +255,7 @@ int main( int argc, char *argv[] )
 {
    const char * topology;
    message_t message_received;
-   execution_queue_t exec_queue;
+   execution_queue_t * exec_queue = createLinkedList();
    unsigned int queue_id, previous_timer;
 
    signal(SIGALRM, alarm_handler);
@@ -152,7 +270,7 @@ int main( int argc, char *argv[] )
              message_received.delta_delay);
       
       // now we add the new entry to the execution queue
-      if( ( exec_queue.len > 0 ) && ( previous_timer = alarm( TIME_OUT ) > 0 ) )
+      if( ( exec_queue->len > 0 ) && ( previous_timer = alarm( TIME_OUT ) > 0 ) )
       {
          /*
             if the execution_queue is not empty and there is a timer in countdown
@@ -166,7 +284,15 @@ int main( int argc, char *argv[] )
                         iii) fire the alarm with the delay of the new head;
                !!! we will always assume the execution queue is sorted (MAKE SURE IT IS) !!!
             */
-            
+            execution_entry_t *new_entry = createEntry(message_received.filename,
+                                                       message_received.delta_delay);    
+            if ( addEntry(new_entry, exec_queue) < 0 )
+            {
+              printf("FAILED: Adding new entry to linked-list\n");
+            }
+
+            previous_timer = message_received.delta_delay;
+            alarm(previous_timer);
          }
 
          else
@@ -174,18 +300,31 @@ int main( int argc, char *argv[] )
             /* 
                if the delay for the new entry is bigger or equal to the current one (already in countdown)
                   i) refire the previous_timer
-                  ii) add the new entry into palce (SORTED!),
+                  ii) add the new entry into place (SORTED!),
             */
-         }
-         
+            alarm(previous_timer);
+
+            execution_entry_t *new_entry = createEntry(message_received.filename,
+                                                       message_received.delta_delay);
+            if( addEntry(new_entry, exec_queue) < 0 )
+            {
+              printf("FAILED: Adding new entry to linked-list\n");
+            }
+         } 
       }
 
-      else if ( exec_queue.len == 0 )
+      else if ( exec_queue->len == 0 )
       {
          /*
             no other process is waiting in the execution_queue
             add the new entry
          */
+          execution_entry_t *new_entry = createEntry(message_received.filename,
+                                                     message_received.delta_delay);    
+          if ( addEntry(new_entry, exec_queue) < 0 )
+          {
+            printf("FAILED: Adding new entry to linked-list\n");
+          }
       }
 
       else
