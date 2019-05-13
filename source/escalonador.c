@@ -34,7 +34,7 @@ Single-linked list methods for the delay_execution module ----------------------
 execution_entry_t * createEntry(const char *filename, unsigned int delay)
 {
    /* 
-   Returns pointer to the new created entry of the single-linked list 
+     Returns pointer to the new created entry of the single-linked list 
    */
    execution_entry_t *temp; 
    
@@ -49,7 +49,7 @@ execution_entry_t * createEntry(const char *filename, unsigned int delay)
 execution_queue_t * createLinkedList()
 {
    /* 
-   Returns pointer to the new created single-linked list 
+     Returns pointer to the new created single-linked list 
    */
    execution_queue_t *list; 
    
@@ -63,8 +63,10 @@ execution_queue_t * createLinkedList()
 int addEntry(execution_entry_t * entry, execution_queue_t * list)
 {
    /* 
-   Returns 0 if adding to the list was successfull, and -1 if it fails
+     Returns 0 if adding to the list was successfull, and -1 if it fails
    */
+
+   /* If linked list is empty */
    if ( list->len == 0 )
    {
      list->head = entry;
@@ -73,6 +75,7 @@ int addEntry(execution_entry_t * entry, execution_queue_t * list)
      return 0;
    }
    
+   /* If linked list is not empty */
    execution_entry_t *aux = list->head;
    execution_entry_t *aux_b = list->head;
    
@@ -115,13 +118,15 @@ int addEntry(execution_entry_t * entry, execution_queue_t * list)
 int removeEntry(execution_entry_t * entry, execution_queue_t *list)
 {
    /* 
-   Returns 0 if removing from list was successfull, and -1 if it fails
+     Returns 0 if removing from list was successfull, and -1 if it fails
    */
+   /* If linked list is empty */
    if ( list->len == 0 )
    {
      return -1;
    }
    
+   /* If linked list is not empty */
    execution_entry_t *aux = list->head;
    execution_entry_t *aux_b = list->head;
    
@@ -191,8 +196,8 @@ bool receive_message( message_t *message_received, int queue_id )
    {
       // prints error message
       perror("RECEIVE_MESSAGE_ERROR");
+      
       return false;
-      //exit( errno );
    }
 
    else
@@ -291,11 +296,12 @@ int main( int argc, char *argv[] )
               message_received.delta_delay);
 
         // now we add the new entry to the execution queue
-        if( ( exec_queue->len > 0 ) && ( previous_timer = alarm( TIME_OUT ) > 0 ) )
+        if( ( exec_queue->len > 0 ) && ( (previous_timer = alarm( TIME_OUT )) > 0 ) )
         {
           /*
               if the execution_queue is not empty and there is a timer in countdown
           */
+
           if( previous_timer > message_received.delta_delay )
           {
               /*
@@ -311,7 +317,7 @@ int main( int argc, char *argv[] )
                                                         message_received.delta_delay);    
               if ( addEntry(new_entry, exec_queue) < 0 )
               {
-                printf("FAILED: Adding new entry to linked-list\n");
+                printf("LINKED_LIST_ERROR: Adding new entry to linked-list failed\n");
               }
 
               alarm(message_received.delta_delay);
@@ -321,16 +327,18 @@ int main( int argc, char *argv[] )
           {
               /* 
                 if the delay for the new entry is bigger or equal to the current one (already in countdown)
-                    i) refire the previous_timer
-                    ii) add the new entry into place (SORTED!),
+                    i) update time left of the linked list's first entry;
+                    ii) refire the previous_timer;
+                    iii) add the new entry into place (SORTED!).
               */
+              exec_queue->head->delay = previous_timer;
               alarm(previous_timer);
 
               execution_entry_t *new_entry = createEntry(message_received.filename,
                                                         message_received.delta_delay);
               if( addEntry(new_entry, exec_queue) < 0 )
               {
-                printf("FAILED: Adding new entry to linked-list\n");
+                printf("LINKED_LIST_ERROR: Adding new entry to linked-list failed\n");
               }
           } 
         }
@@ -345,10 +353,9 @@ int main( int argc, char *argv[] )
                                                       message_received.delta_delay);    
             if ( addEntry(new_entry, exec_queue) < 0 )
             {
-              printf("FAILED: Adding new entry to linked-list\n");
+              printf("LINKED_LIST_ERROR: Adding new entry to linked-list failed\n");
             }
 
-            previous_timer = message_received.delta_delay;
             alarm(message_received.delta_delay);
         }
 
@@ -361,8 +368,7 @@ int main( int argc, char *argv[] )
       if ( flag == 1 )
       {
         /* 
-          Accessed to get next program and delay from the current
-          linked list
+          Gets next program and delay from linked list
         */
         removeEntry(exec_queue->head, exec_queue);  
         if ( exec_queue->len > 0 )
