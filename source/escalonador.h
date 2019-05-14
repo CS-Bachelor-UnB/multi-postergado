@@ -11,12 +11,12 @@
 #include<string.h>
 
 /* Including topologies */
-#include "fattree.h"
+int fattree[15];
+//#include "fattree.h"
 
 /*
  * Global variables so signal handler can access them
  */ 
-const char * topology;
 int flag = 0;
 
 typedef struct message message_t;

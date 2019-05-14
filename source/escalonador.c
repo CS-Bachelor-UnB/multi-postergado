@@ -204,19 +204,43 @@ bool receive_message( message_t *message_received, int queue_id )
       return true;
 }
 
+bool send_message( message_t message_to_send, int queue_id )
+{
+   /**/
+   extern int errno;
+
+   if( msgsnd( queue_id, &message_to_send, sizeof( message_to_send ) - sizeof( long ), 0 ) < 0 )
+   {
+      // prints error message
+      perror("SEND_MESSAGE_ERROR");
+      exit( errno );
+   }
+
+   else
+      return true;
+}
+
 /*
 Auxiliary methods for the delay_execution module ------------------------------------------------------
 */
 
 static void alarm_handler(int signo)
 {
-   printf("Caught a signal to delay\n");
-   
-   // TODO:
-   // FatTree call
-   // HyperCube call
-   // The other one call
+   /*
+    When an alarm rings, it should be checked if the manager processess are
+    availabled, if they are, send a message with the next file to be executed
+   */
+   int queue_id;
 
+    //TODO: IF processos estao livres .....
+
+  //  queue_id = retrieve_queue_id();
+  //  send_message(,queue_id);
+
+   
+
+   //printf("Caught a signal to delay\n");
+   
    flag = 1;
 
    //exit(EXIT_SUCCESS);
@@ -278,13 +302,52 @@ const char * parse_clarg_topology( int argc, char *argv[] )
 
 int main( int argc, char *argv[] )
 {
+   const char * topology;
    message_t message_received;
    execution_queue_t * exec_queue = createLinkedList();
    unsigned int queue_id, previous_timer;
+   int i, pid;
 
    signal(SIGALRM, alarm_handler);
    topology = parse_clarg_topology(argc, argv);
    queue_id = retrieve_queue_id();
+   
+    // TODO: separar em funcao a tarefa de criar os 15 processos !!!
+   /* Creating 15 manager processes */
+   for( i = 0; i < 15; i++ )
+   { 
+      pid = fork();
+      if ( pid < 0 )
+      {
+        printf("PROCESS_CREATION_ERROR: fork returned -1.");
+        exit(1);
+      }
+
+      if( pid == 0 && strcmp(topology,"fattree") == 0 )
+      {
+         /* 
+          Inserting process into fat tree vector, loading new 
+          exec and passing it the fat tree vector address and 
+          its position in the fat tree
+         */
+         fattree[i] = getpid();
+         execl("fattree", "fattree", fattree, i, (char *)0);
+      }
+      else if( pid == 0 && strcmp(topology,"hypercube") == 0 )
+      {
+        // TODO: hypercube call
+      }
+      else if( pid == 0 && strcmp(topology,"torus") == 0 )
+      {
+        // TODO: torus call
+      }
+      else if ( pid == 0 )
+      {
+          printf("TOPOLOGY_ERROR: invalid topology.\n");
+          exit(1);
+      }
+   }
+   
    
    while(true)
    {
