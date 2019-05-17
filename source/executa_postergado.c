@@ -140,6 +140,7 @@ int main(int argc, char *argv[])
    unsigned int queue_id;
    message_t message_to_send;
 
+   message_to_send.pid = getpid();
    strcpy(message_to_send.filename, parse_clarg_filename(argc, argv));
    message_to_send.delta_delay = parse_clarg_delay(argc, argv);
    

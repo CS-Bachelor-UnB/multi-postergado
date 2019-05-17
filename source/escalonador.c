@@ -1,4 +1,5 @@
 #include "escalonador.h"
+#define TIME_OUT 100
 
 /*
 Data Structure for the message to be exchanged between the job_scheduler ('escalonador')
@@ -10,6 +11,156 @@ struct message
    const char filename[50];
    unsigned int delta_delay;
 };
+
+struct execution_entry
+{
+   char *filename;
+   unsigned int delay;
+   execution_entry_t *next;
+};
+
+struct execution_queue
+{
+   /*
+      single-linked list
+   */
+   unsigned int len;
+   execution_entry_t *head;
+};
+
+/*
+Single-linked list methods for the delay_execution module ------------------------------------------------------
+*/
+execution_entry_t * createEntry(const char *filename, unsigned int delay)
+{
+   /* 
+     Returns pointer to the new created entry of the single-linked list 
+   */
+   execution_entry_t *temp; 
+   
+   temp = (execution_entry_t *) malloc(sizeof(execution_entry_t));
+   temp->filename = (char*) filename;
+   temp->delay = delay;
+   temp->next = NULL;
+   
+   return temp;
+}
+
+execution_queue_t * createLinkedList()
+{
+   /* 
+     Returns pointer to the new created single-linked list 
+   */
+   execution_queue_t *list; 
+   
+   list = (execution_queue_t *) malloc(sizeof(execution_queue_t));
+   list->len = 0;
+   list->head = NULL;
+   
+   return list;
+}
+
+int addEntry(execution_entry_t * entry, execution_queue_t * list)
+{
+   /* 
+     Returns 0 if adding to the list was successfull, and -1 if it fails
+   */
+
+   /* If linked list is empty */
+   if ( list->len == 0 )
+   {
+     list->head = entry;
+     list->len++;
+     
+     return 0;
+   }
+   
+   /* If linked list is not empty */
+   execution_entry_t *aux = list->head;
+   execution_entry_t *aux_b = list->head;
+   
+   while ( aux != NULL )
+   {
+     if ( aux->delay > entry->delay )
+     {
+       if (aux == aux_b)
+       {
+         list->head = entry;
+         entry->next = aux;
+       }
+       else
+       {
+         aux_b->next = entry;
+         entry->next = aux;
+       }
+       
+       list->len++;
+       return 0;
+     }
+
+     aux_b = aux;
+     aux = aux->next;
+
+     if ( aux == NULL )
+     {
+       aux_b->next = entry;
+       entry->next = NULL;
+       
+       list->len++;
+       return 0;
+     }
+   }
+
+   return -1;
+
+}
+
+int removeEntry(execution_entry_t * entry, execution_queue_t *list)
+{
+   /* 
+     Returns 0 if removing from list was successfull, and -1 if it fails
+   */
+   /* If linked list is empty */
+   if ( list->len == 0 )
+   {
+     return -1;
+   }
+   
+   /* If linked list is not empty */
+   execution_entry_t *aux = list->head;
+   execution_entry_t *aux_b = list->head;
+   
+   if ( (list->len - 1) == 0 )
+   {
+     list->head = NULL;
+   }
+
+   while ( aux != NULL )
+   {
+     if ( aux == entry )
+     {
+       if (aux == aux_b)
+       {
+         list->head = entry->next;
+         entry->next = NULL;
+       }
+       else
+       {
+         aux_b->next = entry->next;
+         entry->next = NULL;
+       }
+       
+       free(entry);
+       list->len--;
+       return 0;
+     }
+
+     aux_b = aux;
+     aux = aux->next;
+   }
+
+   return -1;
+}
 
 /*
 Main methods for the delay_execution module ------------------------------------------------------
@@ -45,7 +196,8 @@ bool receive_message( message_t *message_received, int queue_id )
    {
       // prints error message
       perror("RECEIVE_MESSAGE_ERROR");
-      exit( errno );
+      
+      return false;
    }
 
    else
@@ -55,6 +207,20 @@ bool receive_message( message_t *message_received, int queue_id )
 /*
 Auxiliary methods for the delay_execution module ------------------------------------------------------
 */
+
+static void alarm_handler(int signo)
+{
+   printf("Caught a signal to delay\n");
+   
+   // TODO:
+   // FatTree call
+   // HyperCube call
+   // The other one call
+
+   flag = 1;
+
+   //exit(EXIT_SUCCESS);
+}
 
 bool contains_string( const char ** array, int array_size, char * string )
 {
@@ -112,16 +278,105 @@ const char * parse_clarg_topology( int argc, char *argv[] )
 
 int main( int argc, char *argv[] )
 {
-   unsigned int queue_id;
-   const char * topology;
    message_t message_received;
+   execution_queue_t * exec_queue = createLinkedList();
+   unsigned int queue_id, previous_timer;
 
+   signal(SIGALRM, alarm_handler);
    topology = parse_clarg_topology(argc, argv);
    queue_id = retrieve_queue_id();
    
-   if( receive_message( &message_received, queue_id ) )
-      printf("SUCCESS:"
-             "\n\tFile '%s' successfully loaded from the execution queue "
-             "\n\t(minimum delay of %d seconds)\n",message_received.filename,
-             message_received.delta_delay);
+   while(true)
+   {
+     if( receive_message( &message_received, queue_id ) )
+     {
+        printf("SUCCESS:"
+              "\n\tFile '%s' successfully loaded from the execution queue "
+              "\n\t(minimum delay of %d seconds)\n",message_received.filename,
+              message_received.delta_delay);
+
+        // now we add the new entry to the execution queue
+        if( ( exec_queue->len > 0 ) && ( (previous_timer = alarm( TIME_OUT )) > 0 ) )
+        {
+          /*
+              if the execution_queue is not empty and there is a timer in countdown
+          */
+
+          if( previous_timer > message_received.delta_delay )
+          {
+              /*
+                check if the delay for the new entry is smaller than the current one (already in countdown)
+                if so,   i) set the new entry as the new head;
+                          ii) set the remaining delay of the previous_timer;
+                          iii) fire the alarm with the delay of the new head;
+                !!! we will always assume the execution queue is sorted (MAKE SURE IT IS) !!!
+              */
+              exec_queue->head->delay = previous_timer;
+
+              execution_entry_t *new_entry = createEntry(message_received.filename,
+                                                        message_received.delta_delay);    
+              if ( addEntry(new_entry, exec_queue) < 0 )
+              {
+                printf("LINKED_LIST_ERROR: Adding new entry to linked-list failed\n");
+              }
+
+              alarm(message_received.delta_delay);
+          }
+
+          else
+          {
+              /* 
+                if the delay for the new entry is bigger or equal to the current one (already in countdown)
+                    i) update time left of the linked list's first entry;
+                    ii) refire the previous_timer;
+                    iii) add the new entry into place (SORTED!).
+              */
+              exec_queue->head->delay = previous_timer;
+              alarm(previous_timer);
+
+              execution_entry_t *new_entry = createEntry(message_received.filename,
+                                                        message_received.delta_delay);
+              if( addEntry(new_entry, exec_queue) < 0 )
+              {
+                printf("LINKED_LIST_ERROR: Adding new entry to linked-list failed\n");
+              }
+          } 
+        }
+
+        else if ( exec_queue->len == 0 )
+        {
+          /*
+              no other process is waiting in the execution_queue
+              add the new entry
+          */
+            execution_entry_t *new_entry = createEntry(message_received.filename,
+                                                      message_received.delta_delay);    
+            if ( addEntry(new_entry, exec_queue) < 0 )
+            {
+              printf("LINKED_LIST_ERROR: Adding new entry to linked-list failed\n");
+            }
+
+            alarm(message_received.delta_delay);
+        }
+
+        else
+        {
+          /* !! if this part is reached, it's likely that there has been some sort of unwanted behavior !! */
+        }
+      }
+
+      if ( flag == 1 )
+      {
+        /* 
+          Gets next program and delay from linked list
+        */
+        removeEntry(exec_queue->head, exec_queue);  
+        if ( exec_queue->len > 0 )
+        {
+          alarm(exec_queue->head->delay);
+        }
+
+        flag = 0;
+      }
+   }
 }
