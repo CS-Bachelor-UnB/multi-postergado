@@ -12,6 +12,7 @@
 
 /* Including topologies */
 #include "fattree.h"
+#include "torus.h"
 
 /*
  * Global variables so signal handler can access them
