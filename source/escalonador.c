@@ -187,12 +187,12 @@ int retrieve_queue_id()
       return queue_id;
 }
 
-bool receive_message( message_t *message_received, int queue_id )
+bool receive_message( message_t *message_received, int queue_id, long type )
 {
    /**/
    extern int errno;
 
-   if( msgrcv( queue_id, message_received, sizeof( *message_received ) - sizeof( long ), 0, MSG_NOERROR ) < 0 )
+   if( msgrcv( queue_id, message_received, sizeof( *message_received ) - sizeof( long ), type, MSG_NOERROR ) < 0 )
    {
       // prints error message
       perror("RECEIVE_MESSAGE_ERROR");
@@ -224,26 +224,79 @@ bool send_message( message_t message_to_send, int queue_id )
 Auxiliary methods for the delay_execution module ------------------------------------------------------
 */
 
+static void create_processes(const char * topology)
+{
+  /* 
+    Creates 15 processes and put them into a specified topology  
+  */
+
+  int pid, i;
+
+  for( i = 0; i < 15; i++ )
+   { 
+      pid = fork();
+      if ( pid < 0 )
+      {
+        printf("PROCESS_CREATION_ERROR: fork returned -1.\n");
+        exit(1);
+      }
+      else if( pid > 0 )
+      {
+        /*
+          Inserting PID into fat tree
+        */
+        fattree[i] = pid;
+      }
+
+      if( pid == 0 && strcmp(topology,"fattree") == 0 )
+      {
+         if ( execl("fattree", "fattree", (char *)0) < 1 )
+         {
+           printf("PROCESS_CREATION_ERROR: execl failed.\n");
+           exit(1);
+         }
+      }
+      else if( pid == 0 && strcmp(topology,"hypercube") == 0 )
+      {
+        // TODO: hypercube call
+      }
+      else if( pid == 0 && strcmp(topology,"torus") == 0 )
+      {
+        // TODO: torus call
+      }
+      else if ( pid == 0 )
+      {
+          printf("TOPOLOGY_ERROR: invalid topology.\n");
+          exit(1);
+      }
+   }
+}
+
 static void alarm_handler(int signo)
 {
    /*
     When an alarm rings, it should be checked if the manager processess are
     availabled, if they are, send a message with the next file to be executed
    */
+
+   /* Busy waiting until manager processes are available */
+   while( busy != 0 ){;}
+
    int queue_id;
 
-    //TODO: IF processos estao livres .....
+   if ( ( queue_id = msgget( 0x6261, (IPC_CREAT|0x1B6 ) ) ) < 0 )
+   {
+     perror( "\nRETRIEVE_QUEUE_ERROR: Error while retrieving the queue_id\n" );
+     exit( errno );
+   }
 
-  //  queue_id = retrieve_queue_id();
-  //  send_message(,queue_id);
+   /* TODO: send message to nodes */
+   /* TODO: new function to retrieve id */
 
-   
-
-   //printf("Caught a signal to delay\n");
-   
+      
+   busy = 1;
    flag = 1;
 
-   //exit(EXIT_SUCCESS);
 }
 
 bool contains_string( const char ** array, int array_size, char * string )
@@ -311,47 +364,12 @@ int main( int argc, char *argv[] )
    signal(SIGALRM, alarm_handler);
    topology = parse_clarg_topology(argc, argv);
    queue_id = retrieve_queue_id();
-   
-    // TODO: separar em funcao a tarefa de criar os 15 processos !!!
-   /* Creating 15 manager processes */
-   for( i = 0; i < 15; i++ )
-   { 
-      pid = fork();
-      if ( pid < 0 )
-      {
-        printf("PROCESS_CREATION_ERROR: fork returned -1.");
-        exit(1);
-      }
-
-      if( pid == 0 && strcmp(topology,"fattree") == 0 )
-      {
-         /* 
-          Inserting process into fat tree vector, loading new 
-          exec and passing it the fat tree vector address and 
-          its position in the fat tree
-         */
-         fattree[i] = getpid();
-         execl("fattree", "fattree", fattree, i, (char *)0);
-      }
-      else if( pid == 0 && strcmp(topology,"hypercube") == 0 )
-      {
-        // TODO: hypercube call
-      }
-      else if( pid == 0 && strcmp(topology,"torus") == 0 )
-      {
-        // TODO: torus call
-      }
-      else if ( pid == 0 )
-      {
-          printf("TOPOLOGY_ERROR: invalid topology.\n");
-          exit(1);
-      }
-   }
-   
+    
+   create_processes(topology);
    
    while(true)
    {
-     if( receive_message( &message_received, queue_id ) )
+     if( receive_message( &message_received, queue_id, 0 ) )
      {
         printf("SUCCESS:"
               "\n\tFile '%s' successfully loaded from the execution queue "
