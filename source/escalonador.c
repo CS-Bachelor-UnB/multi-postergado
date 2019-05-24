@@ -165,7 +165,7 @@ int removeEntry(execution_entry_t * entry, execution_queue_t *list)
 /*
 Main methods for the delay_execution module ------------------------------------------------------
 */
-int retrieve_queue_id()
+int retrieve_queue_id(int type)
 {
    /*
    Returns a standard queue_id shared with  the job_scheduler or zero in case it fails
@@ -177,7 +177,13 @@ int retrieve_queue_id()
    int queue_id;
    extern int errno;
 
-   if ( ( queue_id = msgget( 0x1200, (IPC_CREAT|0x1B6 ) ) ) < 0 )
+   if ( type == 0 && ( queue_id = msgget( 0x1200, (IPC_CREAT|0x1B6 ) ) ) < 0 )
+   {
+     perror( "\nRETRIEVE_QUEUE_ERROR: Error while retrieving the queue_id\n" );
+     exit( errno );
+   }
+
+   else if ( type == 1 && ( queue_id = msgget( 0x6261, (IPC_CREAT|0x1B6 ) ) ) < 0 )
    {
      perror( "\nRETRIEVE_QUEUE_ERROR: Error while retrieving the queue_id\n" );
      exit( errno );
@@ -229,8 +235,8 @@ static void create_processes(const char * topology)
   /* 
     Creates 15 processes and put them into a specified topology  
   */
-
   int pid, i;
+  char exec_argv[1];
 
   for( i = 0; i < 15; i++ )
    { 
@@ -240,17 +246,13 @@ static void create_processes(const char * topology)
         printf("PROCESS_CREATION_ERROR: fork returned -1.\n");
         exit(1);
       }
-      else if( pid > 0 )
-      {
-        /*
-          Inserting PID into fat tree
-        */
-        fattree[i] = pid;
-      }
 
       if( pid == 0 && strcmp(topology,"fattree") == 0 )
-      {
-         if ( execl("fattree", "fattree", (char *)0) < 1 )
+      { 
+         
+         exec_argv[0] = 97 + i;
+
+         if ( execl("fattree", "fattree", exec_argv, (char *)0) < 1 )
          {
            printf("PROCESS_CREATION_ERROR: execl failed.\n");
            exit(1);
@@ -278,21 +280,20 @@ static void alarm_handler(int signo)
     When an alarm rings, it should be checked if the manager processess are
     availabled, if they are, send a message with the next file to be executed
    */
+   message_t msg;
 
    /* Busy waiting until manager processes are available */
    while( busy != 0 ){;}
 
-   int queue_id;
+   int queue_id = retrieve_queue_id(1);
+   msg.pid = 1;
+   strcpy(msg.filename,"sleep");
+   msg.delta_delay = 0;
 
-   if ( ( queue_id = msgget( 0x6261, (IPC_CREAT|0x1B6 ) ) ) < 0 )
-   {
-     perror( "\nRETRIEVE_QUEUE_ERROR: Error while retrieving the queue_id\n" );
-     exit( errno );
-   }
+   send_message(msg,queue_id);
 
    /* TODO: send message to nodes */
    /* TODO: new function to retrieve id */
-
       
    busy = 1;
    flag = 1;
@@ -363,7 +364,7 @@ int main( int argc, char *argv[] )
 
    signal(SIGALRM, alarm_handler);
    topology = parse_clarg_topology(argc, argv);
-   queue_id = retrieve_queue_id();
+   queue_id = retrieve_queue_id(0);
     
    create_processes(topology);
    

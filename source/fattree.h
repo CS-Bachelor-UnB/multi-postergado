@@ -9,3 +9,6 @@
 #include<signal.h>
 #include<wait.h>
 #include<string.h>
+
+typedef struct message message_t;
+

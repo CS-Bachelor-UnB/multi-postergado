@@ -10,10 +10,6 @@
 #include<wait.h>
 #include<string.h>
 
-/* Including topologies */
-int fattree[15];
-//#include "fattree.h"
-
 /*
  * Global variables so signal handler can access them
  */ 
