@@ -10,12 +10,13 @@
 #include<wait.h>
 #include<string.h>
 
-/*
- * Global variables so signal handler can access them
- */ 
-int flag = 0;
-int busy = 0;
-
 typedef struct message message_t;
 typedef struct execution_entry execution_entry_t;
 typedef struct execution_queue execution_queue_t;
+
+/*
+ * Global variables so signal handler can access them
+ */ 
+execution_queue_t * exec_queue;
+int flag = 0;
+int busy = 0;

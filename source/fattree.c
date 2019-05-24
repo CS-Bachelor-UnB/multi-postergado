@@ -6,7 +6,7 @@ Data Structure for the message to be exchanged between the nodes of the fat tree
 struct message
 {
    long pid;
-   const char filename[50];
+   char filename[50];
    unsigned int delta_delay;
 };
 
@@ -61,94 +61,86 @@ bool send_message( message_t message_to_send, int queue_id )
       return true;
 }
 
-void main(int argc, char **argv)
+void setup_fattree(char *arg, long * parent_type, long * child_type)
 {
-    long pid;
-    int queue_id, i;
-    long parent_type, child_type;
-
-    pid = getpid();
-
-    queue_id = retrieve_queue_id();
-
     /* 
        Obtaining types to be used when sending and receiving 
        messages with message queue
     */
-    if ( strcmp(argv[1],"a") == 0 )
+    if ( strcmp(arg,"a") == 0 )
     {
-        parent_type = 1;
-        child_type = 2;
+        *parent_type = 1;
+        *child_type = 2;
     }
-    else if ( strcmp(argv[1],"b") == 0 )
+    else if ( strcmp(arg,"b") == 0 )
     {
-        parent_type = 2;
-        child_type = 3;
+        *parent_type = 2;
+        *child_type = 3;
     }
-    else if ( strcmp(argv[1],"c") == 0 )
+    else if ( strcmp(arg,"c") == 0 )
     {
-        parent_type = 2;
-        child_type = 4;
+        *parent_type = 2;
+        *child_type = 4;
     }
-    else if ( strcmp(argv[1],"d") == 0 )
+    else if ( strcmp(arg,"d") == 0 )
     {
-        parent_type = 3;
-        child_type = 5;
+        *parent_type = 3;
+        *child_type = 5;
     }
-    else if ( strcmp(argv[1],"e") == 0 )
+    else if ( strcmp(arg,"e") == 0 )
     {
-        parent_type = 3;
-        child_type = 6;
+        *parent_type = 3;
+        *child_type = 6;
     }
-    else if ( strcmp(argv[1],"f") == 0 )
+    else if ( strcmp(arg,"f") == 0 )
     {
-        parent_type = 4;
-        child_type = 7;
+        *parent_type = 4;
+        *child_type = 7;
     }
-    else if ( strcmp(argv[1],"g") == 0 )
+    else if ( strcmp(arg,"g") == 0 )
     {
-        parent_type = 4;
-        child_type = 8;
+        *parent_type = 4;
+        *child_type = 8;
     }
-    else if ( strcmp(argv[1],"h") == 0 )
+    else if ( strcmp(arg,"h") == 0 )
     {
-        parent_type = 5;
-        child_type = -1;
+        *parent_type = 5;
+        *child_type = -1;
     }
-    else if ( strcmp(argv[1],"i") == 0 )
+    else if ( strcmp(arg,"i") == 0 )
     {
-        parent_type = 5;
-        child_type = -1;
+        *parent_type = 5;
+        *child_type = -1;
     }
-    else if ( strcmp(argv[1],"j") == 0 )
+    else if ( strcmp(arg,"j") == 0 )
     {
-        parent_type = 6;
-        child_type = -1;
+        *parent_type = 6;
+        *child_type = -1;
     }
-    else if ( strcmp(argv[1],"k") == 0 )
+    else if ( strcmp(arg,"k") == 0 )
     {
-        parent_type = 6;
-        child_type = -1;
+        *parent_type = 6;
+        *child_type = -1;
     }
-    else if ( strcmp(argv[1],"l") == 0 )
+    else if ( strcmp(arg,"l") == 0 )
     {
-        parent_type = 7;
-        child_type = -1;
+        *parent_type = 7;
+        *child_type = -1;
     }
-    else if ( strcmp(argv[1],"m") == 0 )
+    else if ( strcmp(arg,"m") == 0 )
     {
-        parent_type = 7;
-        child_type = -1;
+        *parent_type = 7;
+        *child_type = -1;
     }
-    else if ( strcmp(argv[1],"n") == 0 )
+    else if ( strcmp(arg,"n") == 0 )
     {
-        parent_type = 8;
-        child_type = -1;
+        *parent_type = 8;
+        *child_type = -1;
     }
-    else if ( strcmp(argv[1],"o") == 0 )
+    else if ( strcmp(arg,"o") == 0 )
     {
-        parent_type = 8;
-        child_type = -1;
+        *parent_type = 8;
+        *child_type = -1;
     }
     else
     {
@@ -156,10 +148,91 @@ void main(int argc, char **argv)
         exit(1);
     }
 
-    while( true )
+}
+
+void execute_program(char filename[50])
+{
+    /*
+      Creates new process to execute program
+    */
+    long pid;
+
+    pid = fork();
+    if ( pid < 0 )
     {
-
-
-
+        printf("FATTREE_ERROR: fork failed.\n");
+        exit(1);
     }
+
+    /* Executing only in the new process */
+    if ( pid == 0 )
+    {
+        if ( execl(filename, filename, (char*)0) < 1 )
+        {
+            printf("FATTREE_ERROR: execl returned error.\n");
+            exit(1);
+        }
+    }
+}
+
+void run_fattree(long parent_type, long child_type, int queue_id)
+{
+    message_t msg_rcv, msg_snd;
+    int state;
+
+    while( true )
+    {   
+        /* Receive message from parent */
+        receive_message(&msg_rcv, queue_id, parent_type);
+        
+        /* If node has children */
+        if ( child_type != -1 )
+        {
+            /* Send message to one child */
+            msg_snd.pid = child_type;
+            strcpy(msg_snd.filename, msg_rcv.filename);
+            send_message(msg_snd, queue_id);
+
+            /* Send message to other child */
+            msg_snd.pid = child_type;
+            strcpy(msg_snd.filename, msg_rcv.filename);
+            send_message(msg_snd, queue_id);
+        }
+
+        /* Execute program in special node */
+        execute_program(msg_rcv.filename);
+        wait(&state);
+
+        // if ( child_type != -1 )
+        // {   
+        //     /* Receive message from one child */
+        //     receive_message();
+
+        //     /* Receive message from other child */
+        //     receive_message();
+        // }
+
+        /* Send message to parent */
+        //send_message();
+    }
+
+}
+
+void main(int argc, char **argv)
+{
+    long pid;
+    int queue_id, i;
+    long parent_type, child_type;
+    char *arg;
+
+    pid = getpid();
+
+    queue_id = retrieve_queue_id();
+
+    strcpy(arg,argv[1]);
+    setup_fattree(arg, &parent_type, &child_type);
+
+    run_fattree(parent_type, child_type, queue_id);
+
+    exit(0);
 }

@@ -8,7 +8,7 @@ and the delay_execution ('executa_postergado') modules
 struct message
 {
    long pid;
-   const char filename[50];
+   char filename[50];
    unsigned int delta_delay;
 };
 
@@ -280,16 +280,16 @@ static void alarm_handler(int signo)
     When an alarm rings, it should be checked if the manager processess are
     availabled, if they are, send a message with the next file to be executed
    */
+   int queue_id;
    message_t msg;
 
-   /* Busy waiting until manager processes are available */
-   while( busy != 0 ){;}
-
-   int queue_id = retrieve_queue_id(1);
+  //  /* Busy waiting until manager processes are available */
+  //  while( busy != 0 ){;}
+   queue_id = retrieve_queue_id(1);
+   
    msg.pid = 1;
-   strcpy(msg.filename,"sleep");
+   strcpy(msg.filename,exec_queue->head->filename);
    msg.delta_delay = 0;
-
    send_message(msg,queue_id);
 
    /* TODO: send message to nodes */
@@ -358,9 +358,10 @@ int main( int argc, char *argv[] )
 {
    const char * topology;
    message_t message_received;
-   execution_queue_t * exec_queue = createLinkedList();
    unsigned int queue_id, previous_timer;
    int i, pid;
+
+   exec_queue = createLinkedList();
 
    signal(SIGALRM, alarm_handler);
    topology = parse_clarg_topology(argc, argv);
