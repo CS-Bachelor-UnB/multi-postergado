@@ -65,7 +65,8 @@ void setup_fattree(char *arg, long * parent_type, long * child_type)
 {
     /* 
        Obtaining types to be used when sending and receiving 
-       messages with message queue
+       messages with message queue. In other words, this function
+       specifies the routes for each node of the tree.
     */
     if ( strcmp(arg,"a") == 0 )
     {

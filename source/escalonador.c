@@ -14,6 +14,7 @@ struct message
 
 struct execution_entry
 {
+   int job;
    char *filename;
    unsigned int delay;
    execution_entry_t *next;
@@ -246,6 +247,10 @@ static void create_processes(const char * topology)
         printf("PROCESS_CREATION_ERROR: fork returned -1.\n");
         exit(1);
       }
+      else if( pid > 0 )
+      {
+        process_pid[i] = pid;
+      }
 
       if( pid == 0 && strcmp(topology,"fattree") == 0 )
       { 
@@ -298,6 +303,39 @@ static void alarm_handler(int signo)
    busy = 1;
    flag = 1;
 
+}
+
+static void shutdown(int signo)
+{
+   /*
+    Shutdown all processes and removes all message queues after
+    a SIGUSR1 from terminal
+   */
+   int queue_id, i, state;
+
+   queue_id = retrieve_queue_id(0);
+   msgctl(queue_id, IPC_RMID, 0);
+
+   queue_id = retrieve_queue_id(1);
+   msgctl(queue_id, IPC_RMID, 0);
+
+   if ( exec_queue->len > 0 )
+   {
+     printf("PROCESS_SHUTDOWN: Processes present in the execution queue won't be executed.\n");
+   }
+
+   /* TODO: PRINT STATISTICS */
+
+   for ( i = 0; i < 15; i++ )
+   {
+     if ( kill(process_pid[i], SIGTERM) != 0 )
+     {
+       printf("PROCESS_SHUTDOWN_ERROR: Kill did not return 0. Something went wrong.\n");
+     }
+   }
+
+   wait(&state);
+   exit(0);
 }
 
 bool contains_string( const char ** array, int array_size, char * string )
@@ -359,11 +397,14 @@ int main( int argc, char *argv[] )
    const char * topology;
    message_t message_received;
    unsigned int queue_id, previous_timer;
-   int i, pid;
+   int i, pid, unique_job = 1;
 
    exec_queue = createLinkedList();
-
+   exec_queue_done = createLinkedList();
+   
+   signal(SIGUSR1, shutdown);
    signal(SIGALRM, alarm_handler);
+   
    topology = parse_clarg_topology(argc, argv);
    queue_id = retrieve_queue_id(0);
     
@@ -397,7 +438,10 @@ int main( int argc, char *argv[] )
               exec_queue->head->delay = previous_timer;
 
               execution_entry_t *new_entry = createEntry(message_received.filename,
-                                                        message_received.delta_delay);    
+                                                        message_received.delta_delay);
+              new_entry->job = unique_job;
+              unique_job++;   
+              
               if ( addEntry(new_entry, exec_queue) < 0 )
               {
                 printf("LINKED_LIST_ERROR: Adding new entry to linked-list failed\n");
@@ -419,6 +463,9 @@ int main( int argc, char *argv[] )
 
               execution_entry_t *new_entry = createEntry(message_received.filename,
                                                         message_received.delta_delay);
+              new_entry->job = unique_job;
+              unique_job++;
+
               if( addEntry(new_entry, exec_queue) < 0 )
               {
                 printf("LINKED_LIST_ERROR: Adding new entry to linked-list failed\n");
@@ -434,6 +481,9 @@ int main( int argc, char *argv[] )
           */
             execution_entry_t *new_entry = createEntry(message_received.filename,
                                                       message_received.delta_delay);    
+            new_entry->job = unique_job;
+            unique_job++;
+            
             if ( addEntry(new_entry, exec_queue) < 0 )
             {
               printf("LINKED_LIST_ERROR: Adding new entry to linked-list failed\n");
@@ -451,9 +501,15 @@ int main( int argc, char *argv[] )
       if ( flag == 1 )
       {
         /* 
-          Gets next program and delay from linked list
+          Gets next program and delay from linked list.
+          Update linked list of done processes.
         */
+        if ( addEntry(exec_queue->head, exec_queue_done) < 0 )
+        {
+          printf("LINKED_LIST_ERROR: Adding new entry to linked-list of done jobs failed\n");
+        }
         removeEntry(exec_queue->head, exec_queue);  
+        
         if ( exec_queue->len > 0 )
         {
           alarm(exec_queue->head->delay);
