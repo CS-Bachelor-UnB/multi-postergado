@@ -8,7 +8,7 @@ and the delay_execution ('executa_postergado') modules
 struct message
 {
    long pid;
-   char filename[50];
+   char filename[500];
    unsigned int delta_delay;
 };
 
@@ -23,7 +23,7 @@ struct execution_entry
 struct execution_queue
 {
    /*
-      single-linked list
+     Single-linked list
    */
    unsigned int len;
    execution_entry_t *head;
@@ -290,7 +290,7 @@ static void alarm_handler(int signo)
 
   //  /* Busy waiting until manager processes are available */
   //  while( busy != 0 ){;}
-   queue_id = retrieve_queue_id(1);
+   queue_id = retrieve_queue_id(0);
    
    msg.pid = 1;
    strcpy(msg.filename,exec_queue->head->filename);
@@ -305,7 +305,7 @@ static void alarm_handler(int signo)
 
 }
 
-static void shutdown(int signo)
+static void process_shutdown(int signo)
 {
    /*
     Shutdown all processes and removes all message queues after
@@ -324,7 +324,7 @@ static void shutdown(int signo)
      printf("PROCESS_SHUTDOWN: Processes present in the execution queue won't be executed.\n");
    }
 
-   /* TODO: PRINT STATISTICS */
+   print_statistics();
 
    for ( i = 0; i < 15; i++ )
    {
@@ -336,6 +336,11 @@ static void shutdown(int signo)
 
    wait(&state);
    exit(0);
+}
+
+void print_statistics()
+{
+
 }
 
 bool contains_string( const char ** array, int array_size, char * string )
@@ -402,7 +407,7 @@ int main( int argc, char *argv[] )
    exec_queue = createLinkedList();
    exec_queue_done = createLinkedList();
    
-   signal(SIGUSR1, shutdown);
+   signal(SIGUSR1, process_shutdown);
    signal(SIGALRM, alarm_handler);
    
    topology = parse_clarg_topology(argc, argv);
@@ -513,6 +518,10 @@ int main( int argc, char *argv[] )
         if ( exec_queue->len > 0 )
         {
           alarm(exec_queue->head->delay);
+        }
+        else if ( exec_queue->len == 0 )
+        {
+          print_statistics();
         }
 
         flag = 0;

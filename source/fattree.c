@@ -6,11 +6,11 @@ Data Structure for the message to be exchanged between the nodes of the fat tree
 struct message
 {
    long pid;
-   char filename[50];
+   char filename[500];
    unsigned int delta_delay;
 };
 
-int retrieve_queue_id()
+int retrieve_queue_id(int type)
 {
    /*
    Returns a standard queue_id shared with  the job_scheduler or zero in case it fails
@@ -18,7 +18,13 @@ int retrieve_queue_id()
    int queue_id;
    extern int errno;
 
-   if ( ( queue_id = msgget( 0x6261, (IPC_CREAT|0x1B6 ) ) ) < 0 )
+   if ( type == 0 && ( queue_id = msgget( 0x1200, (IPC_CREAT|0x1B6 ) ) ) < 0 )
+   {
+     perror( "\nRETRIEVE_QUEUE_ERROR: Error while retrieving the queue_id\n" );
+     exit( errno );
+   }
+
+   else if ( type == 1 && ( queue_id = msgget( 0x6261, (IPC_CREAT|0x1B6 ) ) ) < 0 )
    {
      perror( "\nRETRIEVE_QUEUE_ERROR: Error while retrieving the queue_id\n" );
      exit( errno );
@@ -176,15 +182,25 @@ void execute_program(char filename[50])
     }
 }
 
-void run_fattree(long parent_type, long child_type, int queue_id)
+void run_fattree(long parent_type, long child_type, int queue_tree_id, int queue_id)
 {
+    clock_t start, end;
     message_t msg_rcv, msg_snd;
+    float start_sec, end_sec;
+    char start_string[100], end_string[100];
     int state;
 
     while( true )
     {   
         /* Receive message from parent */
-        receive_message(&msg_rcv, queue_id, parent_type);
+        if ( parent_type == 1 )
+        {
+            receive_message(&msg_rcv, queue_id, parent_type);
+        }
+        else
+        {
+            receive_message(&msg_rcv, queue_tree_id, parent_type);
+        }
         
         /* If node has children */
         if ( child_type != -1 )
@@ -192,48 +208,78 @@ void run_fattree(long parent_type, long child_type, int queue_id)
             /* Send message to one child */
             msg_snd.pid = child_type;
             strcpy(msg_snd.filename, msg_rcv.filename);
-            send_message(msg_snd, queue_id);
+            send_message(msg_snd, queue_tree_id);
 
             /* Send message to other child */
-            msg_snd.pid = child_type;
-            strcpy(msg_snd.filename, msg_rcv.filename);
-            send_message(msg_snd, queue_id);
+            send_message(msg_snd, queue_tree_id);
         }
 
-        /* Execute program in special node */
+        /* Execute program in special node and count the time taken */
+        start = clock();
+        
         execute_program(msg_rcv.filename);
         wait(&state);
+        
+        end = clock();
+        
+        start_sec = (float)(start) / CLOCKS_PER_SEC;
+        end_sec = (float)(end) / CLOCKS_PER_SEC;
 
-        // if ( child_type != -1 )
-        // {   
-        //     /* Receive message from one child */
-        //     receive_message();
+        strcpy(msg_rcv.filename, "\0");
+        strcpy(msg_snd.filename, "\0");
 
-        //     /* Receive message from other child */
-        //     receive_message();
-        // }
+        /* If node has children */
+        if ( child_type != -1 )
+        {   
+            /* Receive message from one child */
+            receive_message(&msg_rcv, queue_tree_id, child_type);
+            strcpy(msg_snd.filename, msg_rcv.filename);
+
+            /* Receive message from other child */
+            receive_message(&msg_rcv, queue_tree_id, child_type);
+            strcat(msg_snd.filename, msg_rcv.filename);
+        }
+
+        /* Creating string with start and end times */
+        sprintf(start_string, "%f", start_sec);
+        sprintf(end_string, "%f", end_sec);
+        strcat(end_string, "\n");
+        strcat(start_string, " ");
+        strcat(start_string, end_string);
 
         /* Send message to parent */
-        //send_message();
-    }
+        msg_snd.pid = parent_type;
+        strcat(msg_snd.filename, start_string);
+        
+        if ( parent_type == 1 )
+        {
+            send_message(msg_snd, queue_id);
+        }
+        else
+        {
+            send_message(msg_snd, queue_tree_id);
+        }
 
+        sleep(1);
+    }
 }
 
 void main(int argc, char **argv)
 {
     long pid;
-    int queue_id, i;
+    int queue_tree_id, queue_id, i;
     long parent_type, child_type;
     char *arg;
 
     pid = getpid();
 
-    queue_id = retrieve_queue_id();
+    queue_tree_id = retrieve_queue_id(1);
+    queue_id = retrieve_queue_id(0);
 
     strcpy(arg,argv[1]);
     setup_fattree(arg, &parent_type, &child_type);
 
-    run_fattree(parent_type, child_type, queue_id);
+    run_fattree(parent_type, child_type, queue_tree_id, queue_id);
 
     exit(0);
 }

@@ -9,6 +9,7 @@
 #include<signal.h>
 #include<wait.h>
 #include<string.h>
+#include<time.h>
 
 typedef struct message message_t;
 
