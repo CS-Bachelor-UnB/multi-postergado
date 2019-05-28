@@ -7,7 +7,7 @@ and the delay_execution ('executa_postergado') modules
 struct message
 {
    long pid;
-   char filename[50];
+   char filename[500];
    unsigned int delta_delay;
 };
 

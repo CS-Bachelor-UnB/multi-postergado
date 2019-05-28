@@ -8,12 +8,13 @@ and the delay_execution ('executa_postergado') modules
 struct message
 {
    long pid;
-   const char filename[50];
+   char filename[500];
    unsigned int delta_delay;
 };
 
 struct execution_entry
 {
+   int job;
    char *filename;
    unsigned int delay;
    execution_entry_t *next;
@@ -22,7 +23,7 @@ struct execution_entry
 struct execution_queue
 {
    /*
-      single-linked list
+     Single-linked list
    */
    unsigned int len;
    execution_entry_t *head;
@@ -165,7 +166,7 @@ int removeEntry(execution_entry_t * entry, execution_queue_t *list)
 /*
 Main methods for the delay_execution module ------------------------------------------------------
 */
-int retrieve_queue_id()
+int retrieve_queue_id(int type)
 {
    /*
    Returns a standard queue_id shared with  the job_scheduler or zero in case it fails
@@ -177,7 +178,13 @@ int retrieve_queue_id()
    int queue_id;
    extern int errno;
 
-   if ( ( queue_id = msgget( 0x1200, (IPC_CREAT|0x1B6 ) ) ) < 0 )
+   if ( type == 0 && ( queue_id = msgget( 0x1200, (IPC_CREAT|0x1B6 ) ) ) < 0 )
+   {
+     perror( "\nRETRIEVE_QUEUE_ERROR: Error while retrieving the queue_id\n" );
+     exit( errno );
+   }
+
+   else if ( type == 1 && ( queue_id = msgget( 0x6261, (IPC_CREAT|0x1B6 ) ) ) < 0 )
    {
      perror( "\nRETRIEVE_QUEUE_ERROR: Error while retrieving the queue_id\n" );
      exit( errno );
@@ -187,12 +194,12 @@ int retrieve_queue_id()
       return queue_id;
 }
 
-bool receive_message( message_t *message_received, int queue_id )
+bool receive_message( message_t *message_received, int queue_id, long type )
 {
    /**/
    extern int errno;
 
-   if( msgrcv( queue_id, message_received, sizeof( *message_received ) - sizeof( long ), 0, MSG_NOERROR ) < 0 )
+   if( msgrcv( queue_id, message_received, sizeof( *message_received ) - sizeof( long ), type, MSG_NOERROR ) < 0 )
    {
       // prints error message
       perror("RECEIVE_MESSAGE_ERROR");
@@ -204,22 +211,136 @@ bool receive_message( message_t *message_received, int queue_id )
       return true;
 }
 
+bool send_message( message_t message_to_send, int queue_id )
+{
+   /**/
+   extern int errno;
+
+   if( msgsnd( queue_id, &message_to_send, sizeof( message_to_send ) - sizeof( long ), 0 ) < 0 )
+   {
+      // prints error message
+      perror("SEND_MESSAGE_ERROR");
+      exit( errno );
+   }
+
+   else
+      return true;
+}
+
 /*
 Auxiliary methods for the delay_execution module ------------------------------------------------------
 */
 
+static void create_processes(const char * topology)
+{
+  /* 
+    Creates 15 processes and put them into a specified topology  
+  */
+  int pid, i;
+  char exec_argv[1];
+
+  for( i = 0; i < 15; i++ )
+   { 
+      pid = fork();
+      if ( pid < 0 )
+      {
+        printf("PROCESS_CREATION_ERROR: fork returned -1.\n");
+        exit(1);
+      }
+      else if( pid > 0 )
+      {
+        process_pid[i] = pid;
+      }
+
+      if( pid == 0 && strcmp(topology,"fattree") == 0 )
+      { 
+         
+         exec_argv[0] = 97 + i;
+
+         if ( execl("fattree", "fattree", exec_argv, (char *)0) < 1 )
+         {
+           printf("PROCESS_CREATION_ERROR: execl failed.\n");
+           exit(1);
+         }
+      }
+      else if( pid == 0 && strcmp(topology,"hypercube") == 0 )
+      {
+        // TODO: hypercube call
+      }
+      else if( pid == 0 && strcmp(topology,"torus") == 0 )
+      {
+        // TODO: torus call
+      }
+      else if ( pid == 0 )
+      {
+          printf("TOPOLOGY_ERROR: invalid topology.\n");
+          exit(1);
+      }
+   }
+}
+
 static void alarm_handler(int signo)
 {
-   printf("Caught a signal to delay\n");
-   
-   // TODO:
-   // FatTree call
-   // HyperCube call
-   // The other one call
+   /*
+    When an alarm rings, it should be checked if the manager processess are
+    availabled, if they are, send a message with the next file to be executed
+   */
+   int queue_id;
+   message_t msg;
 
+  //  /* Busy waiting until manager processes are available */
+  //  while( busy != 0 ){;}
+   queue_id = retrieve_queue_id(0);
+   
+   msg.pid = 1;
+   strcpy(msg.filename,exec_queue->head->filename);
+   msg.delta_delay = 0;
+   send_message(msg,queue_id);
+
+   /* TODO: send message to nodes */
+   /* TODO: new function to retrieve id */
+      
+   busy = 1;
    flag = 1;
 
-   //exit(EXIT_SUCCESS);
+}
+
+static void process_shutdown(int signo)
+{
+   /*
+    Shutdown all processes and removes all message queues after
+    a SIGUSR1 from terminal
+   */
+   int queue_id, i, state;
+
+   queue_id = retrieve_queue_id(0);
+   msgctl(queue_id, IPC_RMID, 0);
+
+   queue_id = retrieve_queue_id(1);
+   msgctl(queue_id, IPC_RMID, 0);
+
+   if ( exec_queue->len > 0 )
+   {
+     printf("PROCESS_SHUTDOWN: Processes present in the execution queue won't be executed.\n");
+   }
+
+   print_statistics();
+
+   for ( i = 0; i < 15; i++ )
+   {
+     if ( kill(process_pid[i], SIGTERM) != 0 )
+     {
+       printf("PROCESS_SHUTDOWN_ERROR: Kill did not return 0. Something went wrong.\n");
+     }
+   }
+
+   wait(&state);
+   exit(0);
+}
+
+void print_statistics()
+{
+
 }
 
 bool contains_string( const char ** array, int array_size, char * string )
@@ -278,17 +399,25 @@ const char * parse_clarg_topology( int argc, char *argv[] )
 
 int main( int argc, char *argv[] )
 {
+   const char * topology;
    message_t message_received;
-   execution_queue_t * exec_queue = createLinkedList();
    unsigned int queue_id, previous_timer;
+   int i, pid, unique_job = 1;
 
+   exec_queue = createLinkedList();
+   exec_queue_done = createLinkedList();
+   
+   signal(SIGUSR1, process_shutdown);
    signal(SIGALRM, alarm_handler);
+   
    topology = parse_clarg_topology(argc, argv);
-   queue_id = retrieve_queue_id();
+   queue_id = retrieve_queue_id(0);
+    
+   create_processes(topology);
    
    while(true)
    {
-     if( receive_message( &message_received, queue_id ) )
+     if( receive_message( &message_received, queue_id, 0 ) )
      {
         printf("SUCCESS:"
               "\n\tFile '%s' successfully loaded from the execution queue "
@@ -314,7 +443,10 @@ int main( int argc, char *argv[] )
               exec_queue->head->delay = previous_timer;
 
               execution_entry_t *new_entry = createEntry(message_received.filename,
-                                                        message_received.delta_delay);    
+                                                        message_received.delta_delay);
+              new_entry->job = unique_job;
+              unique_job++;   
+              
               if ( addEntry(new_entry, exec_queue) < 0 )
               {
                 printf("LINKED_LIST_ERROR: Adding new entry to linked-list failed\n");
@@ -336,6 +468,9 @@ int main( int argc, char *argv[] )
 
               execution_entry_t *new_entry = createEntry(message_received.filename,
                                                         message_received.delta_delay);
+              new_entry->job = unique_job;
+              unique_job++;
+
               if( addEntry(new_entry, exec_queue) < 0 )
               {
                 printf("LINKED_LIST_ERROR: Adding new entry to linked-list failed\n");
@@ -351,6 +486,9 @@ int main( int argc, char *argv[] )
           */
             execution_entry_t *new_entry = createEntry(message_received.filename,
                                                       message_received.delta_delay);    
+            new_entry->job = unique_job;
+            unique_job++;
+            
             if ( addEntry(new_entry, exec_queue) < 0 )
             {
               printf("LINKED_LIST_ERROR: Adding new entry to linked-list failed\n");
@@ -368,12 +506,22 @@ int main( int argc, char *argv[] )
       if ( flag == 1 )
       {
         /* 
-          Gets next program and delay from linked list
+          Gets next program and delay from linked list.
+          Update linked list of done processes.
         */
+        if ( addEntry(exec_queue->head, exec_queue_done) < 0 )
+        {
+          printf("LINKED_LIST_ERROR: Adding new entry to linked-list of done jobs failed\n");
+        }
         removeEntry(exec_queue->head, exec_queue);  
+        
         if ( exec_queue->len > 0 )
         {
           alarm(exec_queue->head->delay);
+        }
+        else if ( exec_queue->len == 0 )
+        {
+          print_statistics();
         }
 
         flag = 0;

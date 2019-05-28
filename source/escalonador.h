@@ -10,15 +10,15 @@
 #include<wait.h>
 #include<string.h>
 
-/* Including topologies */
-#include "fattree.h"
-
-/*
- * Global variables so signal handler can access them
- */ 
-const char * topology;
-int flag = 0;
-
 typedef struct message message_t;
 typedef struct execution_entry execution_entry_t;
 typedef struct execution_queue execution_queue_t;
+
+/*
+ * Global variables so signal handler can access them
+ */
+execution_queue_t * exec_queue;
+execution_queue_t * exec_queue_done;
+int flag = 0;
+int busy = 0;
+long process_pid[15]; 
