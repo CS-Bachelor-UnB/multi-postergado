@@ -20,5 +20,6 @@ Compile os arquivos escalonador.c e executa_postergado.c
 > gcc <filename.c> -o <executable_name>
 
 Execute
-> escalonador & (execução no background)
+> escalonador -t topology & (execução no background)
+
 > executa_postergado -f filename -d delay (in seconds)
