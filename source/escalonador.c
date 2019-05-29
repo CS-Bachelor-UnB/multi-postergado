@@ -269,7 +269,13 @@ static void create_processes(const char * topology)
       }
       else if( pid == 0 && strcmp(topology,"torus") == 0 )
       {
-        // TODO: torus call
+        exec_argv[0] = 48 + i;
+
+         if ( execl("torus", "torus", exec_argv, (char *)0) < 1 )
+         {
+           printf("PROCESS_CREATION_ERROR: execl failed.\n");
+           exit(1);
+         }
       }
       else if ( pid == 0 )
       {
