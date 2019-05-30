@@ -326,11 +326,9 @@ static void alarm_handler(int signo)
    }
   
    queue_id = retrieve_queue_id(0);
-   
    msg.pid = 1;
    strcpy(msg.filename, filename);
    msg.delta_delay = 0;
-   
    send_message(msg,queue_id);
 
    removeEntry(exec_queue->head, exec_queue); 
@@ -360,10 +358,10 @@ void print_statistics()
       printf("Job number %d "
             "\nFile '%s' "
             "\nDelay %d seconds"
-            "\nMakespan (todo:makespan) seconds\n", aux->job,
-                                                    aux->filename,
-                                                    aux->delay
-                                                                );
+            "\nMakespan %.2f seconds\n", aux->job,
+                                       aux->filename,
+                                       aux->delay,
+                                       aux->makespan);
       aux = aux->next;
     }
 }
@@ -466,7 +464,7 @@ int main( int argc, char *argv[] )
    const char * topology;
    message_t message_received;
    unsigned int queue_id, previous_timer;
-   int i, pid, unique_job = 1;
+   int unique_job = 1;
    double makespan = 0.0;
 
    exec_queue = createLinkedList();
@@ -487,16 +485,25 @@ int main( int argc, char *argv[] )
        /* If message received comes from the manager process */
        if ( message_received.pid == 1 )
        {
-         /* TODO: CALC MAKESPAN */
-         printf("\n makespan %s \n", message_received.filename);
+         char makespan [10];
+         int i = 0;
+         
+         while ( message_received.filename[i] != '\n' )
+         {
+           makespan[i] = message_received.filename[i];
+           i++;
+         }
+         
+         exec_queue_done->head->makespan = atof(makespan);
+         
          printf("\nSUCCESS: Done execution."
                 "\nJob number %d "
                 "\nFile '%s' "
                 "\nDelay %d seconds"
-                "\nMakespan %f seconds\n", exec_queue_done->head->job,
-                                           exec_queue_done->head->filename,
-                                           exec_queue_done->head->delay,
-                                           exec_queue_done->head->makespan);
+                "\nMakespan %.2f seconds\n", exec_queue_done->head->job,
+                                             exec_queue_done->head->filename,
+                                             exec_queue_done->head->delay,
+                                             exec_queue_done->head->makespan);
        }
        /* If message received comes from executa_postergado */
        else
