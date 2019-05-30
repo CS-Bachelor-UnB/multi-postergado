@@ -357,11 +357,11 @@ void print_statistics()
     {
       printf("Job number %d "
             "\nFile '%s' "
-            "\nDelay %d seconds"
-            "\nMakespan %.2f seconds\n", aux->job,
-                                       aux->filename,
-                                       aux->delay,
-                                       aux->makespan);
+            "\nDelay %d second(s)"
+            "\nMakespan %.2f second(s)\n", aux->job,
+                                           aux->filename,
+                                           aux->delay,
+                                           aux->makespan);
       aux = aux->next;
     }
 }
@@ -499,11 +499,11 @@ int main( int argc, char *argv[] )
          printf("\nSUCCESS: Done execution."
                 "\nJob number %d "
                 "\nFile '%s' "
-                "\nDelay %d seconds"
-                "\nMakespan %.2f seconds\n", exec_queue_done->head->job,
-                                             exec_queue_done->head->filename,
-                                             exec_queue_done->head->delay,
-                                             exec_queue_done->head->makespan);
+                "\nDelay %d second(s)"
+                "\nMakespan %.2f second(s)\n", exec_queue_done->head->job,
+                                               exec_queue_done->head->filename,
+                                               exec_queue_done->head->delay,
+                                               exec_queue_done->head->makespan);
        }
        /* If message received comes from executa_postergado */
        else
@@ -592,18 +592,5 @@ int main( int argc, char *argv[] )
           }
         }
       }
-
-      // if ( flag == 1 )
-      // {
-      //   /* 
-      //     Gets next program and delay from linked list.
-      //   */ 
-      //   if ( exec_queue->len > 0 )
-      //   {
-      //     alarm(exec_queue->head->delay);
-      //   }
-
-      //   flag = 0;
-      // }
    }
 }
