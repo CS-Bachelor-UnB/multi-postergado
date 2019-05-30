@@ -310,9 +310,6 @@ static void alarm_handler(int signo)
    int queue_id;
    message_t msg;
    
-  //  /* Busy waiting until manager processes are available */
-  //  while( busy != 0 ){;}
-   
    strcpy(filename, exec_queue->head->filename);
    delay = exec_queue->head->delay;
    
@@ -333,13 +330,8 @@ static void alarm_handler(int signo)
 
    removeEntry(exec_queue->head, exec_queue); 
 
+   /* Processes are busy */
    busy = 1;
-
-   /* Gets next program and delay from linked list */ 
-   if ( exec_queue->len > 0 )
-   {
-     alarm(exec_queue->head->delay);
-   }
 }
 
 void print_statistics()
@@ -504,6 +496,12 @@ int main( int argc, char *argv[] )
                                                exec_queue_done->head->filename,
                                                exec_queue_done->head->delay,
                                                exec_queue_done->head->makespan);
+         
+         /* Set alarm for the next program */ 
+         if ( exec_queue->len > 0 )
+         {
+           alarm(exec_queue->head->delay);
+         }
        }
        /* If message received comes from executa_postergado */
        else
