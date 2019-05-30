@@ -15,8 +15,9 @@ struct message
 struct execution_entry
 {
    int job;
-   char *filename;
+   char filename[500];
    unsigned int delay;
+   float makespan;
    execution_entry_t *next;
 };
 
@@ -32,7 +33,7 @@ struct execution_queue
 /*
 Single-linked list methods for the delay_execution module ------------------------------------------------------
 */
-execution_entry_t * createEntry(const char *filename, unsigned int delay)
+execution_entry_t * createEntry(char filename[500], unsigned int delay)
 {
    /* 
      Returns pointer to the new created entry of the single-linked list 
@@ -40,8 +41,9 @@ execution_entry_t * createEntry(const char *filename, unsigned int delay)
    execution_entry_t *temp; 
    
    temp = (execution_entry_t *) malloc(sizeof(execution_entry_t));
-   temp->filename = (char*) filename;
+   strcpy(temp->filename, filename);
    temp->delay = delay;
+   temp->makespan = 0.0;
    temp->next = NULL;
    
    return temp;
@@ -59,6 +61,23 @@ execution_queue_t * createLinkedList()
    list->head = NULL;
    
    return list;
+}
+
+int addEntryToHead(execution_entry_t * entry, execution_queue_t * list)
+{
+   /* 
+     Returns 0 if adding to the list was successfull, and -1 if it fails.
+     New entry is added to the head of the linked list.
+   */
+  execution_entry_t *auxiliar;
+
+  auxiliar = list->head;
+  list->head = entry;
+  entry->next = auxiliar;
+
+  list->len++;
+
+  return 0;
 }
 
 int addEntry(execution_entry_t * entry, execution_queue_t * list)
@@ -202,7 +221,7 @@ bool receive_message( message_t *message_received, int queue_id, long type )
    if( msgrcv( queue_id, message_received, sizeof( *message_received ) - sizeof( long ), type, MSG_NOERROR ) < 0 )
    {
       // prints error message
-      perror("RECEIVE_MESSAGE_ERROR");
+      //perror("RECEIVE_MESSAGE_ERROR");
       
       return false;
    }
@@ -285,24 +304,68 @@ static void alarm_handler(int signo)
     When an alarm rings, it should be checked if the manager processess are
     availabled, if they are, send a message with the next file to be executed
    */
+   char filename[50];
+   unsigned int delay;
+   execution_entry_t *new_entry;
    int queue_id;
    message_t msg;
-
+   
   //  /* Busy waiting until manager processes are available */
   //  while( busy != 0 ){;}
+   
+   strcpy(filename, exec_queue->head->filename);
+   delay = exec_queue->head->delay;
+   
+   new_entry = createEntry(filename,delay);
+   new_entry->job = exec_queue->head->job;
+
+   /* Updating linked-lists */
+   if ( addEntryToHead(new_entry, exec_queue_done) < 0 )
+   {
+     printf("LINKED_LIST_ERROR: Adding new entry to linked-list of done jobs failed\n");
+   }
+  
    queue_id = retrieve_queue_id(0);
    
    msg.pid = 1;
-   strcpy(msg.filename,exec_queue->head->filename);
+   strcpy(msg.filename, filename);
    msg.delta_delay = 0;
+   
    send_message(msg,queue_id);
 
-   /* TODO: send message to nodes */
-   /* TODO: new function to retrieve id */
-      
-   busy = 1;
-   flag = 1;
+   removeEntry(exec_queue->head, exec_queue); 
 
+   busy = 1;
+
+   /* Gets next program and delay from linked list */ 
+   if ( exec_queue->len > 0 )
+   {
+     alarm(exec_queue->head->delay);
+   }
+}
+
+void print_statistics()
+{
+    /*
+      Showing info of all executed processes
+    */
+    execution_entry_t * aux;
+    int i;
+
+    aux = exec_queue_done->head;
+    printf("\nINFO STATISTICS: \n\n");
+
+    for ( i == 0; i < exec_queue_done->len; i++)
+    {
+      printf("Job number %d "
+            "\nFile '%s' "
+            "\nDelay %d seconds"
+            "\nMakespan (todo:makespan) seconds\n", aux->job,
+                                                    aux->filename,
+                                                    aux->delay
+                                                                );
+      aux = aux->next;
+    }
 }
 
 static void process_shutdown(int signo)
@@ -311,35 +374,38 @@ static void process_shutdown(int signo)
     Shutdown all processes and removes all message queues after
     a SIGUSR1 from terminal
    */
-   int queue_id, i, state;
+   printf("\nSHUTTING DOWN MESSAGE QUEUES AND PROCESSES !\n");
 
-   queue_id = retrieve_queue_id(0);
-   msgctl(queue_id, IPC_RMID, 0);
+   int pid, queue_id, i, state;;
+   
+   pid = fork();
 
-   queue_id = retrieve_queue_id(1);
-   msgctl(queue_id, IPC_RMID, 0);
+   if ( pid > 0 )
+   {  
+      queue_id = retrieve_queue_id(0);
+      msgctl(queue_id, IPC_RMID, 0);
 
-   if ( exec_queue->len > 0 )
-   {
-     printf("PROCESS_SHUTDOWN: Processes present in the execution queue won't be executed.\n");
-   }
+      queue_id = retrieve_queue_id(1);
+      msgctl(queue_id, IPC_RMID, 0);
 
-   print_statistics();
+      if ( exec_queue->len > 0 )
+      {
+        printf("PROCESS_SHUTDOWN: Processes present in the execution queue won't be executed.\n");
+      }
 
-   for ( i = 0; i < 15; i++ )
-   {
-     if ( kill(process_pid[i], SIGTERM) != 0 )
-     {
-       printf("PROCESS_SHUTDOWN_ERROR: Kill did not return 0. Something went wrong.\n");
-     }
+      print_statistics();
+
+      for ( i = 0; i < 15; i++ )
+      {
+        if ( kill(process_pid[i], SIGKILL) != 0 )
+        {
+          printf("PROCESS_SHUTDOWN_ERROR: Kill did not return 0. Something went wrong.\n");
+        }
+      }
    }
 
    wait(&state);
    exit(0);
-}
-
-void print_statistics()
-{
 
 }
 
@@ -392,10 +458,8 @@ const char * parse_clarg_topology( int argc, char *argv[] )
 
    // the '-f' flag was not found. Thus, prints error and exits
    printf( "CL_PARSER_ERROR: FlagError\n\tNo TOPOLOGY_FLAG '-t' found.\n\tThe pattern < -t topology > must be followed\n" );
-   exit(1);
-      
+   exit(1);     
 }
-
 
 int main( int argc, char *argv[] )
 {
@@ -403,6 +467,7 @@ int main( int argc, char *argv[] )
    message_t message_received;
    unsigned int queue_id, previous_timer;
    int i, pid, unique_job = 1;
+   double makespan = 0.0;
 
    exec_queue = createLinkedList();
    exec_queue_done = createLinkedList();
@@ -419,33 +484,92 @@ int main( int argc, char *argv[] )
    {
      if( receive_message( &message_received, queue_id, 0 ) )
      {
-        printf("SUCCESS:"
-              "\n\tFile '%s' successfully loaded from the execution queue "
-              "\n\t(minimum delay of %d seconds)\n",message_received.filename,
-              message_received.delta_delay);
+       /* If message received comes from the manager process */
+       if ( message_received.pid == 1 )
+       {
+         /* TODO: CALC MAKESPAN */
+         printf("\n makespan %s \n", message_received.filename);
+         printf("\nSUCCESS: Done execution."
+                "\nJob number %d "
+                "\nFile '%s' "
+                "\nDelay %d seconds"
+                "\nMakespan %f seconds\n", exec_queue_done->head->job,
+                                           exec_queue_done->head->filename,
+                                           exec_queue_done->head->delay,
+                                           exec_queue_done->head->makespan);
+       }
+       /* If message received comes from executa_postergado */
+       else
+       {
+          printf("SUCCESS:"
+                "\n\tFile '%s' successfully loaded from the execution queue "
+                "\n\t(minimum delay of %d seconds)\n",message_received.filename,
+                message_received.delta_delay);
 
-        // now we add the new entry to the execution queue
-        if( ( exec_queue->len > 0 ) && ( (previous_timer = alarm( TIME_OUT )) > 0 ) )
-        {
-          /*
-              if the execution_queue is not empty and there is a timer in countdown
-          */
-
-          if( previous_timer > message_received.delta_delay )
+          // now we add the new entry to the execution queue
+          if( ( exec_queue->len > 0 ) && ( (previous_timer = alarm( TIME_OUT )) > 0 ) )
           {
-              /*
-                check if the delay for the new entry is smaller than the current one (already in countdown)
-                if so,   i) set the new entry as the new head;
-                          ii) set the remaining delay of the previous_timer;
-                          iii) fire the alarm with the delay of the new head;
-                !!! we will always assume the execution queue is sorted (MAKE SURE IT IS) !!!
-              */
-              exec_queue->head->delay = previous_timer;
+            /*
+                if the execution_queue is not empty and there is a timer in countdown
+            */
 
+            if( previous_timer > message_received.delta_delay )
+            {
+                /*
+                  check if the delay for the new entry is smaller than the current one (already in countdown)
+                  if so,   i) set the new entry as the new head;
+                            ii) set the remaining delay of the previous_timer;
+                            iii) fire the alarm with the delay of the new head;
+                  !!! we will always assume the execution queue is sorted (MAKE SURE IT IS) !!!
+                */
+                exec_queue->head->delay = previous_timer;
+
+                execution_entry_t *new_entry = createEntry(message_received.filename,
+                                                           message_received.delta_delay);
+                new_entry->job = unique_job;
+                unique_job++;   
+                
+                if ( addEntry(new_entry, exec_queue) < 0 )
+                {
+                  printf("LINKED_LIST_ERROR: Adding new entry to linked-list failed\n");
+                }
+
+                alarm(message_received.delta_delay);
+            }
+
+            else
+            {
+                /* 
+                  if the delay for the new entry is bigger or equal to the current one (already in countdown)
+                      i) update time left of the linked list's first entry;
+                      ii) refire the previous_timer;
+                      iii) add the new entry into place (SORTED!).
+                */
+                exec_queue->head->delay = previous_timer;
+                alarm(previous_timer);
+
+                execution_entry_t *new_entry = createEntry(message_received.filename,
+                                                           message_received.delta_delay);
+                new_entry->job = unique_job;
+                unique_job++;
+
+                if( addEntry(new_entry, exec_queue) < 0 )
+                {
+                  printf("LINKED_LIST_ERROR: Adding new entry to linked-list failed\n");
+                }
+            } 
+          }
+
+          else if ( exec_queue->len == 0 )
+          {
+            /*
+                no other process is waiting in the execution_queue
+                add the new entry
+            */
               execution_entry_t *new_entry = createEntry(message_received.filename,
-                                                        message_received.delta_delay);
+                                                         message_received.delta_delay);    
               new_entry->job = unique_job;
-              unique_job++;   
+              unique_job++;
               
               if ( addEntry(new_entry, exec_queue) < 0 )
               {
@@ -457,74 +581,22 @@ int main( int argc, char *argv[] )
 
           else
           {
-              /* 
-                if the delay for the new entry is bigger or equal to the current one (already in countdown)
-                    i) update time left of the linked list's first entry;
-                    ii) refire the previous_timer;
-                    iii) add the new entry into place (SORTED!).
-              */
-              exec_queue->head->delay = previous_timer;
-              alarm(previous_timer);
-
-              execution_entry_t *new_entry = createEntry(message_received.filename,
-                                                        message_received.delta_delay);
-              new_entry->job = unique_job;
-              unique_job++;
-
-              if( addEntry(new_entry, exec_queue) < 0 )
-              {
-                printf("LINKED_LIST_ERROR: Adding new entry to linked-list failed\n");
-              }
-          } 
-        }
-
-        else if ( exec_queue->len == 0 )
-        {
-          /*
-              no other process is waiting in the execution_queue
-              add the new entry
-          */
-            execution_entry_t *new_entry = createEntry(message_received.filename,
-                                                      message_received.delta_delay);    
-            new_entry->job = unique_job;
-            unique_job++;
-            
-            if ( addEntry(new_entry, exec_queue) < 0 )
-            {
-              printf("LINKED_LIST_ERROR: Adding new entry to linked-list failed\n");
-            }
-
-            alarm(message_received.delta_delay);
-        }
-
-        else
-        {
-          /* !! if this part is reached, it's likely that there has been some sort of unwanted behavior !! */
+            /* !! if this part is reached, it's likely that there has been some sort of unwanted behavior !! */
+          }
         }
       }
 
-      if ( flag == 1 )
-      {
-        /* 
-          Gets next program and delay from linked list.
-          Update linked list of done processes.
-        */
-        if ( addEntry(exec_queue->head, exec_queue_done) < 0 )
-        {
-          printf("LINKED_LIST_ERROR: Adding new entry to linked-list of done jobs failed\n");
-        }
-        removeEntry(exec_queue->head, exec_queue);  
-        
-        if ( exec_queue->len > 0 )
-        {
-          alarm(exec_queue->head->delay);
-        }
-        else if ( exec_queue->len == 0 )
-        {
-          print_statistics();
-        }
+      // if ( flag == 1 )
+      // {
+      //   /* 
+      //     Gets next program and delay from linked list.
+      //   */ 
+      //   if ( exec_queue->len > 0 )
+      //   {
+      //     alarm(exec_queue->head->delay);
+      //   }
 
-        flag = 0;
-      }
+      //   flag = 0;
+      // }
    }
 }

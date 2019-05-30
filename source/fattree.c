@@ -42,7 +42,7 @@ bool receive_message( message_t *message_received, int queue_id, long type )
    if( msgrcv( queue_id, message_received, sizeof( *message_received ) - sizeof( long ), type, MSG_NOERROR ) < 0 )
    {
       // prints error message
-      perror("RECEIVE_MESSAGE_ERROR");
+      //perror("RECEIVE_MESSAGE_ERROR");
       
       return false;
    }
