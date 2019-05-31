@@ -59,7 +59,7 @@ bool receive_message( message_t *message_received, int queue_id, long type )
       return true;
 }
 
-bool send_message( message_t message_to_send, int queue_id )
+bool send_message( message_t message_to_send, int queue_id)
 {
    /**/
    extern int errno;
@@ -77,13 +77,14 @@ bool send_message( message_t message_to_send, int queue_id )
 
 void ready_torus_cell(cell_t torus[16], int cell_num)
 {
+	/*Each node will receive a initial messagem from can_acess_pos[1] and pass to can_acess_pos[0]*/
 	switch(cell_num)
 	{
 		
 		case 0:
-			torus[0].can_acess_pos[0] = 12;
+			torus[0].can_acess_pos[0] = 1;
 			torus[0].can_acess_pos[1] = 3;
-			torus[0].can_acess_pos[2] = 1;
+			torus[0].can_acess_pos[2] = 12;
 			torus[0].can_acess_pos[3] = 4;
 			/*torus[cell_num].can_acess_pid[0] = torus[12].pid;
 			torus[cell_num].can_acess_pid[1] = torus[3].pid;
@@ -91,9 +92,9 @@ void ready_torus_cell(cell_t torus[16], int cell_num)
 			torus[cell_num].can_acess_pid[3] = torus[4].pid;*/
 			break;
 		case 1:
-			torus[0].can_acess_pos[0] = 13;
+			torus[0].can_acess_pos[0] = 2;
 			torus[0].can_acess_pos[1] = 0;
-			torus[0].can_acess_pos[2] = 2;
+			torus[0].can_acess_pos[2] = 13;
 			torus[0].can_acess_pos[3] = 5;
 			/*torus[cell_num].can_acess_pid[0] = torus[13].pid;
 			torus[cell_num].can_acess_pid[1] = torus[0].pid;
@@ -101,9 +102,9 @@ void ready_torus_cell(cell_t torus[16], int cell_num)
 			torus[cell_num].can_acess_pid[3] = torus[5].pid;*/
 			break;
 		case 2:
-			torus[0].can_acess_pos[0] = 14;
+			torus[0].can_acess_pos[0] = 3;
 			torus[0].can_acess_pos[1] = 1;
-			torus[0].can_acess_pos[2] = 3;
+			torus[0].can_acess_pos[2] = 14;
 			torus[0].can_acess_pos[3] = 6;
 			/*torus[cell_num].can_acess_pid[0] = torus[14].pid;
 			torus[cell_num].can_acess_pid[1] = torus[1].pid;
@@ -111,29 +112,29 @@ void ready_torus_cell(cell_t torus[16], int cell_num)
 			torus[cell_num].can_acess_pid[3] = torus[6].pid;*/
 			break;
 		case 3:
-			torus[0].can_acess_pos[0] = 15;
-			torus[0].can_acess_pos[1] = 0;
-			torus[0].can_acess_pos[2] = 2;
-			torus[0].can_acess_pos[3] = 7;
+			torus[0].can_acess_pos[0] = 7;
+			torus[0].can_acess_pos[1] = 2;
+			torus[0].can_acess_pos[2] = 0;
+			torus[0].can_acess_pos[3] = 15;
 			/*torus[cell_num].can_acess_pid[0] = torus[15].pid;
 			torus[cell_num].can_acess_pid[1] = torus[0].pid;
 			torus[cell_num].can_acess_pid[2] = torus[2].pid;
 			torus[cell_num].can_acess_pid[3] = torus[7].pid;*/
 			break;
 		case 4:
-			torus[0].can_acess_pos[0] = 0;
-			torus[0].can_acess_pos[1] = 7;
-			torus[0].can_acess_pos[2] = 5;
-			torus[0].can_acess_pos[3] = 8;
+			torus[0].can_acess_pos[0] = 8;
+			torus[0].can_acess_pos[1] = 5;
+			torus[0].can_acess_pos[2] = 0;
+			torus[0].can_acess_pos[3] = 7;
 			/*torus[cell_num].can_acess_pid[0] = torus[0].pid;
 			torus[cell_num].can_acess_pid[1] = torus[7].pid;
 			torus[cell_num].can_acess_pid[2] = torus[5].pid;
 			torus[cell_num].can_acess_pid[3] = torus[8].pid;*/
 			break;
 		case 5:
-			torus[0].can_acess_pos[0] = 1;
-			torus[0].can_acess_pos[1] = 4;
-			torus[0].can_acess_pos[2] = 6;
+			torus[0].can_acess_pos[0] = 4;
+			torus[0].can_acess_pos[1] = 6;
+			torus[0].can_acess_pos[2] = 1;
 			torus[0].can_acess_pos[3] = 9;
 			/*torus[cell_num].can_acess_pid[0] = torus[1].pid;
 			torus[cell_num].can_acess_pid[1] = torus[4].pid;
@@ -141,9 +142,9 @@ void ready_torus_cell(cell_t torus[16], int cell_num)
 			torus[cell_num].can_acess_pid[3] = torus[9].pid;*/
 			break;
 		case 6:
-			torus[0].can_acess_pos[0] = 2;
-			torus[0].can_acess_pos[1] = 5;
-			torus[0].can_acess_pos[2] = 7;
+			torus[0].can_acess_pos[0] = 5;
+			torus[0].can_acess_pos[1] = 7;
+			torus[0].can_acess_pos[2] = 2;
 			torus[0].can_acess_pos[3] = 10;
 			/*torus[cell_num].can_acess_pid[0] = torus[2].pid;
 			torus[cell_num].can_acess_pid[1] = torus[5].pid;
@@ -151,8 +152,8 @@ void ready_torus_cell(cell_t torus[16], int cell_num)
 			torus[cell_num].can_acess_pid[3] = torus[10].pid;*/
 			break;
 		case 7:
-			torus[0].can_acess_pos[0] = 3;
-			torus[0].can_acess_pos[1] = 6;
+			torus[0].can_acess_pos[0] = 6;
+			torus[0].can_acess_pos[1] = 3;
 			torus[0].can_acess_pos[2] = 4;
 			torus[0].can_acess_pos[3] = 11;
 			/*torus[cell_num].can_acess_pid[0] = torus[3].pid;
@@ -161,9 +162,9 @@ void ready_torus_cell(cell_t torus[16], int cell_num)
 			torus[cell_num].can_acess_pid[3] = torus[11].pid;*/
 			break;
 		case 8:
-			torus[0].can_acess_pos[0] = 4;
-			torus[0].can_acess_pos[1] = 11;
-			torus[0].can_acess_pos[2] = 9;
+			torus[0].can_acess_pos[0] = 9;
+			torus[0].can_acess_pos[1] = 4;
+			torus[0].can_acess_pos[2] = 11;
 			torus[0].can_acess_pos[3] = 12;
 			/*torus[cell_num].can_acess_pid[0] = torus[4].pid;
 			torus[cell_num].can_acess_pid[1] = torus[11].pid;
@@ -171,9 +172,9 @@ void ready_torus_cell(cell_t torus[16], int cell_num)
 			torus[cell_num].can_acess_pid[3] = torus[12].pid;*/
 			break;
 		case 9:
-			torus[0].can_acess_pos[0] = 5;
+			torus[0].can_acess_pos[0] = 10;
 			torus[0].can_acess_pos[1] = 8;
-			torus[0].can_acess_pos[2] = 10;
+			torus[0].can_acess_pos[2] = 5;
 			torus[0].can_acess_pos[3] = 13;
 			/*torus[cell_num].can_acess_pid[0] = torus[5].pid;
 			torus[cell_num].can_acess_pid[1] = torus[8].pid;
@@ -181,9 +182,9 @@ void ready_torus_cell(cell_t torus[16], int cell_num)
 			torus[cell_num].can_acess_pid[3] = torus[13].pid;*/
 			break;
 		case 10:
-			torus[0].can_acess_pos[0] = 6;
+			torus[0].can_acess_pos[0] = 11;
 			torus[0].can_acess_pos[1] = 9;
-			torus[0].can_acess_pos[2] = 11;
+			torus[0].can_acess_pos[2] = 6;
 			torus[0].can_acess_pos[3] = 14;
 			/*torus[cell_num].can_acess_pid[0] = torus[6].pid;
 			torus[cell_num].can_acess_pid[1] = torus[9].pid;
@@ -191,19 +192,19 @@ void ready_torus_cell(cell_t torus[16], int cell_num)
 			torus[cell_num].can_acess_pid[3] = torus[14].pid;*/
 			break;
 		case 11:
-			torus[0].can_acess_pos[0] = 7;
+			torus[0].can_acess_pos[0] = 15;
 			torus[0].can_acess_pos[1] = 10;
 			torus[0].can_acess_pos[2] = 8;
-			torus[0].can_acess_pos[3] = 15;
+			torus[0].can_acess_pos[3] = 7;
 			/*torus[cell_num].can_acess_pid[0] = torus[7].pid;
 			torus[cell_num].can_acess_pid[1] = torus[10].pid;
 			torus[cell_num].can_acess_pid[2] = torus[8].pid;
 			torus[cell_num].can_acess_pid[3] = torus[15].pid;*/
 			break;
 		case 12:
-			torus[0].can_acess_pos[0] = 8;
-			torus[0].can_acess_pos[1] = 15;
-			torus[0].can_acess_pos[2] = 13;
+			torus[0].can_acess_pos[0] = 0;
+			torus[0].can_acess_pos[1] = 13;
+			torus[0].can_acess_pos[2] = 15;
 			torus[0].can_acess_pos[3] = 0;
 			/*torus[cell_num].can_acess_pid[0] = torus[8].pid;
 			torus[cell_num].can_acess_pid[1] = torus[15].pid;
@@ -211,9 +212,9 @@ void ready_torus_cell(cell_t torus[16], int cell_num)
 			torus[cell_num].can_acess_pid[3] = torus[0].pid;*/
 			break;
 		case 13:
-			torus[0].can_acess_pos[0] = 9;
-			torus[0].can_acess_pos[1] = 12;
-			torus[0].can_acess_pos[2] = 14;
+			torus[0].can_acess_pos[0] = 12;
+			torus[0].can_acess_pos[1] = 14;
+			torus[0].can_acess_pos[2] = 9;
 			torus[0].can_acess_pos[3] = 1;
 			/*torus[cell_num].can_acess_pid[0] = torus[9].pid;
 			torus[cell_num].can_acess_pid[1] = torus[12].pid;
@@ -221,9 +222,9 @@ void ready_torus_cell(cell_t torus[16], int cell_num)
 			torus[cell_num].can_acess_pid[3] = torus[1].pid;*/
 			break;
 		case 14:
-			torus[0].can_acess_pos[0] = 10;
-			torus[0].can_acess_pos[1] = 13;
-			torus[0].can_acess_pos[2] = 15;
+			torus[0].can_acess_pos[0] = 13;
+			torus[0].can_acess_pos[1] = 15;
+			torus[0].can_acess_pos[2] = 10;
 			torus[0].can_acess_pos[3] = 2;
 			/*torus[cell_num].can_acess_pid[0] = torus[10].pid;
 			torus[cell_num].can_acess_pid[1] = torus[13].pid;
@@ -231,8 +232,8 @@ void ready_torus_cell(cell_t torus[16], int cell_num)
 			torus[cell_num].can_acess_pid[3] = torus[1].pid;*/
 			break;
 		case 15:
-			torus[0].can_acess_pos[0] = 11;
-			torus[0].can_acess_pos[1] = 14;
+			torus[0].can_acess_pos[0] = 14;
+			torus[0].can_acess_pos[1] = 11;
 			torus[0].can_acess_pos[2] = 12;
 			torus[0].can_acess_pos[3] = 3;
 			/*torus[cell_num].can_acess_pid[0] = torus[11].pid;
@@ -271,7 +272,7 @@ void execute_program(char filename[50])
     }
 }
 
-void run_torus(cell_t torus[], int queue_tree_id, int queue_id)
+void run_torus(cell_t torus[], int queue_torus_id, int queue_id)
 {
     clock_t start, end;
     message_t msg_rcv, msg_snd;
@@ -284,20 +285,20 @@ void run_torus(cell_t torus[], int queue_tree_id, int queue_id)
         /* Receive message from parent */
         if (torus[0].my_pos == 0)
         {
-            receive_message(&msg_rcv, queue_id, torus[0].my_pos);
+            receive_message(&msg_rcv, queue_id, torus[0].my_pos+1);
         }
         else
         {
-			receive_message(&msg_rcv, queue_tree_id, torus[0].my_pos);
+			receive_message(&msg_rcv, queue_torus_id, torus[0].my_pos+1);
         }
         
         
-        for(i = 0; i < 4; i++)
+        if(torus[0].my_pos != 12)
         {
             /* Send message to one conection at a time */
-            msg_snd.pid = torus[0].can_acess_pos[i];
+            msg_snd.pid = torus[0].can_acess_pos[0]+1;
             strcpy(msg_snd.filename, msg_rcv.filename);
-            send_message(msg_snd, queue_tree_id);
+            send_message(msg_snd, queue_torus_id);
 
         }
 
@@ -315,19 +316,25 @@ void run_torus(cell_t torus[], int queue_tree_id, int queue_id)
         strcpy(msg_rcv.filename, "\0");
         strcpy(msg_snd.filename, "\0");
 
+        
+        if(torus[0].my_pos != 12)
+        {
+			receive_message(&msg_rcv, queue_torus_id, torus[0].can_acess_pos[0]+1);
+			strcpy(msg_snd.filename, msg_rcv.filename);
+		}
           
 		/* Receive message from one conection */
-		receive_message(&msg_rcv, queue_tree_id, torus[0].can_acess_pos[0]);
-		strcpy(msg_snd.filename, msg_rcv.filename);
+		//receive_message(&msg_rcv, queue_torus_id, torus[0].can_acess_pos[0]);
+		//strcpy(msg_snd.filename, msg_rcv.filename);
 		/* Receive message from other conection */
-		receive_message(&msg_rcv, queue_tree_id, torus[0].can_acess_pos[1]);
-		strcat(msg_snd.filename, msg_rcv.filename);
+		//receive_message(&msg_rcv, queue_torus_id, torus[0].can_acess_pos[1]);
+		//strcat(msg_snd.filename, msg_rcv.filename);
 		/* Receive message from other conection */
-		receive_message(&msg_rcv, queue_tree_id, torus[0].can_acess_pos[2]);
-		strcat(msg_snd.filename, msg_rcv.filename);
+		//receive_message(&msg_rcv, queue_torus_id, torus[0].can_acess_pos[2]);
+		//strcat(msg_snd.filename, msg_rcv.filename);
 		/* Receive message from other conection */
-		receive_message(&msg_rcv, queue_tree_id, torus[0].can_acess_pos[3]);
-		strcat(msg_snd.filename, msg_rcv.filename);
+		//receive_message(&msg_rcv, queue_torus_id, torus[0].can_acess_pos[3]);
+		//strcat(msg_snd.filename, msg_rcv.filename);
         
 
         /* Creating string with start and end times */
@@ -342,22 +349,15 @@ void run_torus(cell_t torus[], int queue_tree_id, int queue_id)
         
         if (torus[0].my_pos == 0)
         {
-            msg_snd.pid = torus[0].my_pos;
+            msg_snd.pid = torus[0].my_pos+1;
 			strcat(msg_snd.filename, start_string);
             send_message(msg_snd, queue_id);
         }
         else
         {
-            
-            for(i = 0; i < 4; i++)
-			{
-				/* Send message to one conection at a time */
-				msg_snd.pid = torus[0].can_acess_pos[i];
-				strcat(msg_snd.filename, start_string);
-				send_message(msg_snd, queue_tree_id);
-
-			}
-
+			msg_snd.pid = torus[0].my_pos+1;
+			strcat(msg_snd.filename, start_string);
+            send_message(msg_snd, queue_torus_id);
         }
 
         sleep(1);
@@ -380,8 +380,10 @@ int main(int argc, char *argv[])
     
     torus[0].my_pos = (int)argv[1][0]-48;
     ready_torus_cell(torus, (int)argv[1][0]-48);
+    //printf("%d\t %d\n",(int)argv[1][0]-48, pid);
     run_torus(torus, queue_torus_id, queue_id);
     //printf("%d:     %d %d %d %d\n\n", (int)argv[1][0]-48, torus[0].can_acess_pos[0], torus[0].can_acess_pos[1], torus[0].can_acess_pos[2], torus[0].can_acess_pos[3]);
+    
 	
 	/*for(i = 0; i < 16; i++){
 		
