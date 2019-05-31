@@ -255,10 +255,17 @@ static void create_processes(const char * topology)
   /* 
     Creates 15 processes and put them into a specified topology  
   */
-  int pid, i;
+  int pid, i, n_proc;
   char exec_argv[1];
-
-  for( i = 0; i < 15; i++ )
+  if(strcmp(topology,"fattree") == 0)
+  {
+	  n_proc = 15;
+  }
+  else
+  {
+	  n_proc = 16;
+  }
+  for( i = 0; i < n_proc; i++ )
    { 
       pid = fork();
       if ( pid < 0 )
@@ -288,7 +295,13 @@ static void create_processes(const char * topology)
       }
       else if( pid == 0 && strcmp(topology,"torus") == 0 )
       {
-        // TODO: torus call
+        exec_argv[0] = 48 + i;
+
+         if ( execl("torus", "torus", exec_argv, (char *)0) < 1 )
+         {
+           printf("PROCESS_CREATION_ERROR: execl failed.\n");
+           exit(1);
+         }
       }
       else if ( pid == 0 )
       {
