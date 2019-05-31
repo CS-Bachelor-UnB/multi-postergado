@@ -42,7 +42,7 @@ bool receive_message( message_t *message_received, int queue_id, long type )
    if( msgrcv( queue_id, message_received, sizeof( *message_received ) - sizeof( long ), type, MSG_NOERROR ) < 0 )
    {
       // prints error message
-      perror("RECEIVE_MESSAGE_ERROR");
+      //perror("RECEIVE_MESSAGE_ERROR");
       
       return false;
    }
@@ -59,7 +59,7 @@ bool send_message( message_t message_to_send, int queue_id )
    if( msgsnd( queue_id, &message_to_send, sizeof( message_to_send ) - sizeof( long ), 0 ) < 0 )
    {
       // prints error message
-      perror("SEND_MESSAGE_ERROR");
+      //perror("SEND_MESSAGE_ERROR");
       exit( errno );
    }
 
@@ -176,7 +176,7 @@ void execute_program(char filename[50])
     {
         if ( execl(filename, filename, (char*)0) < 1 )
         {
-            printf("FATTREE_ERROR: execl returned error.\n");
+            //printf("FATTREE_ERROR: execl returned error.\n");
             exit(1);
         }
     }
@@ -184,10 +184,10 @@ void execute_program(char filename[50])
 
 void run_fattree(long parent_type, long child_type, int queue_tree_id, int queue_id)
 {
-    clock_t start, end;
+    time_t start, end;
+    double diff;
     message_t msg_rcv, msg_snd;
-    float start_sec, end_sec;
-    char start_string[100], end_string[100];
+    char start_string[100], end_string[100], diff_string[100];
     int state;
 
     while( true )
@@ -214,16 +214,14 @@ void run_fattree(long parent_type, long child_type, int queue_tree_id, int queue
             send_message(msg_snd, queue_tree_id);
         }
 
-        /* Execute program in special node and count the time taken */
-        start = clock();
+        /* Executing program in special node and counting the time taken */
+        start = time(NULL);
         
         execute_program(msg_rcv.filename);
         wait(&state);
         
-        end = clock();
-        
-        start_sec = (float)(start) / CLOCKS_PER_SEC;
-        end_sec = (float)(end) / CLOCKS_PER_SEC;
+        end = time(NULL);
+        diff = difftime(end, start);
 
         strcpy(msg_rcv.filename, "\0");
         strcpy(msg_snd.filename, "\0");
@@ -241,15 +239,17 @@ void run_fattree(long parent_type, long child_type, int queue_tree_id, int queue
         }
 
         /* Creating string with start and end times */
-        sprintf(start_string, "%f", start_sec);
-        sprintf(end_string, "%f", end_sec);
-        strcat(end_string, "\n");
-        strcat(start_string, " ");
-        strcat(start_string, end_string);
+        // sprintf(start_string, "%f", start);
+        // sprintf(end_string, "%f", end);
+        // strcat(end_string, "\n");
+        // strcat(start_string, " ");
+        // strcat(start_string, end_string);
+        sprintf(diff_string, "%f", diff);
+        strcat(diff_string, "\n");
 
         /* Send message to parent */
         msg_snd.pid = parent_type;
-        strcat(msg_snd.filename, start_string);
+        strcat(msg_snd.filename, diff_string);
         
         if ( parent_type == 1 )
         {
