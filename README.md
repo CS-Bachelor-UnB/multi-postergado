@@ -8,18 +8,25 @@ Etapas / Sprints:
 1) ~~Executa_Postergado~~
 2) Escalonador com tratamento de alarmes
   2.1) ~~Ler mensagens da fila de mensagens~~
-  2.2) Tratamento de Alarmes
-  2.3) Interface com a topologia escolhida (via linha de comando)
+  2.2) ~~Tratamento de Alarmes~~
+  2.3) ~~Interface com a topologia escolhida (via linha de comando)~~
 3) Topologias
 4) Teste, Integração e Relatório
 
 LEMBRE: entrega em CD
 
 ## Como executar?
-Compile os arquivos escalonador.c e executa_postergado.c
-> gcc <filename.c> -o <executable_name>
+Compile os arquivos com:
 
-Execute
-> escalonador -t topology & (execução no background)
+    cd ~/root-dir-of-project/
+    make
 
-> executa_postergado -f filename -d delay (in seconds)
+
+Execute:
+    
+    cd ~/root-dir-of-project/bin
+    escalonador -t topology &
+    executa_postergado -f filename -d delay
+    
+> onde 'topology' pode ser fattree, hypercube, torus
+> e 'delay' deve ser em segundos
