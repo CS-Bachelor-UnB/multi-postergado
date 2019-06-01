@@ -1,4 +1,4 @@
-#include "torus.h"
+#include "data_structures.h"
 
 
 /*
@@ -229,9 +229,11 @@ void run_torus(cell_t torus[], int queue_torus_id, int queue_id)
     time_t start, end;
     double diff;
     message_t msg_rcv, msg_snd;
-    float start_sec, end_sec;
-    char start_string[100], end_string[100], diff_string[100];
-    int state, i;
+    // float start_sec, end_sec;
+    // char start_string[100], end_string[100];
+    char diff_string[100];
+    int state;
+    // int i;
 
     while( true )
     {   
@@ -306,12 +308,12 @@ int main(int argc, char *argv[])
 {
 
 	cell_t torus[1];
-	int i;
-	long pid;
+	// int i;
+	// long pid;
     int queue_torus_id, queue_id;
-    char *arg;
+    // char *arg;
 
-    pid = getpid();
+    // pid = getpid();
 
     queue_torus_id = retrieve_queue_id(1);
     queue_id = retrieve_queue_id(0);

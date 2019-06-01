@@ -1,7 +1,7 @@
 #include<unistd.h>
 #include<stdio.h>
 
-void main()
+int main()
 {
     printf("Executing program ... \n");
     sleep(30);

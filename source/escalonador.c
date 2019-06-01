@@ -1,4 +1,4 @@
-#include "escalonador.h"
+#include "data_structures.h"
 #define TIME_OUT 100
 
 /*
@@ -358,7 +358,7 @@ void print_statistics()
     aux = exec_queue_done->head;
     printf("\nINFO STATISTICS: \n\n");
 
-    for ( i == 0; i < exec_queue_done->len; i++)
+    for ( i = 0; i < exec_queue_done->len; i++)
     {
       printf("Job number %d "
             "\nFile '%s' "
@@ -470,7 +470,7 @@ int main( int argc, char *argv[] )
    message_t message_received;
    unsigned int queue_id, previous_timer;
    int unique_job = 1;
-   double makespan = 0.0;
+  //  double makespan = 0.0;
 
    exec_queue = createLinkedList();
    exec_queue_done = createLinkedList();

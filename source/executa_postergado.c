@@ -1,4 +1,4 @@
-#include "executa_postergado.h"
+#include "data_structures.h"
 
 /*
 Data Structure for the message to be exchanged between the job_scheduler ('escalonador')
@@ -11,8 +11,23 @@ struct message
    unsigned int delta_delay;
 };
 
+
+/* -------------------------- DEFINITON OF METHODS --------------------------------------------- #
+*/
 /*
-Main methods for the delay_execution module ------------------------------------------------------
+Main methods
+*/
+int retrieve_queue_id();
+bool send_message( message_t message_to_send, int queue_id );
+
+/*
+Auxiliary methods. Should these be protected/private?
+*/
+const char * parse_clarg_filename(int argc, char *argv[]);
+unsigned int parse_clarg_delay(int argc, char *argv[]);
+
+
+/* ------------------------- IMPLEMENTATION OF METHODS ---------------------------------------- #
 */
 int retrieve_queue_id()
 {

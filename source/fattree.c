@@ -1,4 +1,4 @@
-#include "fattree.h"
+#include "data_structures.h"
 
 /*
 Data Structure for the message to be exchanged between the nodes of the fat tree
@@ -187,7 +187,8 @@ void run_fattree(long parent_type, long child_type, int queue_tree_id, int queue
     time_t start, end;
     double diff;
     message_t msg_rcv, msg_snd;
-    char start_string[100], end_string[100], diff_string[100];
+    // char start_string[100], end_string[100];
+    char diff_string[100];
     int state;
 
     while( true )
@@ -264,20 +265,21 @@ void run_fattree(long parent_type, long child_type, int queue_tree_id, int queue
     }
 }
 
-void main(int argc, char **argv)
+int main(int argc, char **argv)
 {
-    long pid;
-    int queue_tree_id, queue_id, i;
+    // long pid;
+    int queue_tree_id, queue_id;
+    // int i;
     long parent_type, child_type;
-    char *arg;
+    // char *arg;
 
-    pid = getpid();
+    // pid = getpid();
 
     queue_tree_id = retrieve_queue_id(1);
     queue_id = retrieve_queue_id(0);
 
-    strcpy(arg,argv[1]);
-    setup_fattree(arg, &parent_type, &child_type);
+    // strcpy(arg,argv[1]);
+    setup_fattree(argv[1], &parent_type, &child_type);
 
     run_fattree(parent_type, child_type, queue_tree_id, queue_id);
 
