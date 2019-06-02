@@ -1,3 +1,10 @@
 .vscode/
 bin/
 .github_access_token
+hypercube
+escalonador
+executa_postergado
+fattree
+os_projectescalonador
+os_projectexecuta_postergado
+torus

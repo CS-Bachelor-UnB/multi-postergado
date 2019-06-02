@@ -291,7 +291,13 @@ static void create_processes(const char * topology)
       }
       else if( pid == 0 && strcmp(topology,"hypercube") == 0 )
       {
-        // TODO: hypercube call
+        exec_argv[0] = 48 + i;
+
+         if ( execl("hypercube", "hypercube", exec_argv, (char *)0) < 1 )
+         {
+           printf("PROCESS_CREATION_ERROR: execl failed.\n");
+           exit(1);
+         }
       }
       else if( pid == 0 && strcmp(topology,"torus") == 0 )
       {

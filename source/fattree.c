@@ -271,15 +271,15 @@ int main(int argc, char **argv)
     int queue_tree_id, queue_id;
     // int i;
     long parent_type, child_type;
-    // char *arg;
+    char arg[50];
 
     // pid = getpid();
 
     queue_tree_id = retrieve_queue_id(1);
     queue_id = retrieve_queue_id(0);
 
-    // strcpy(arg,argv[1]);
-    setup_fattree(argv[1], &parent_type, &child_type);
+    strcpy(arg,argv[1]);
+    setup_fattree(arg, &parent_type, &child_type);
 
     run_fattree(parent_type, child_type, queue_tree_id, queue_id);
 

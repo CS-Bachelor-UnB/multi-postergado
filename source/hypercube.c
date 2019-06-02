@@ -81,115 +81,115 @@ void ready_hypercube_cell(cell_t hypercube[16], int cell_num)
 	{
 		
 		case 0:
-			hypercube[0].can_acess_pos[0] = 1;
-			hypercube[0].can_acess_pos[1] = 3;
-			hypercube[0].can_acess_pos[2] = 12;
-			hypercube[0].can_acess_pos[3] = 4;
+			hypercube[0].can_acess_pos[0] = 4;
+			hypercube[0].can_acess_pos[1] = 2;
+			hypercube[0].can_acess_pos[2] = 8;
+			hypercube[0].can_acess_pos[3] = 1;
 			
 			break;
 		case 1:
-			hypercube[0].can_acess_pos[0] = 2;
-			hypercube[0].can_acess_pos[1] = 0;
-			hypercube[0].can_acess_pos[2] = 13;
-			hypercube[0].can_acess_pos[3] = 5;
+			hypercube[0].can_acess_pos[0] = 0;
+			hypercube[0].can_acess_pos[1] = 3;
+			hypercube[0].can_acess_pos[2] = 5;
+			hypercube[0].can_acess_pos[3] = 9;
 			
 			break;
 		case 2:
-			hypercube[0].can_acess_pos[0] = 3;
-			hypercube[0].can_acess_pos[1] = 1;
-			hypercube[0].can_acess_pos[2] = 14;
-			hypercube[0].can_acess_pos[3] = 6;
+			hypercube[0].can_acess_pos[0] = 6;
+			hypercube[0].can_acess_pos[1] = 10;
+			hypercube[0].can_acess_pos[2] = 0;
+			hypercube[0].can_acess_pos[3] = 3;
 			
 			break;
 		case 3:
 			hypercube[0].can_acess_pos[0] = 7;
-			hypercube[0].can_acess_pos[1] = 2;
-			hypercube[0].can_acess_pos[2] = 0;
-			hypercube[0].can_acess_pos[3] = 15;
-			
-			break;
-		case 4:
-			hypercube[0].can_acess_pos[0] = 8;
-			hypercube[0].can_acess_pos[1] = 5;
-			hypercube[0].can_acess_pos[2] = 0;
-			hypercube[0].can_acess_pos[3] = 7;
-			
-			break;
-		case 5:
-			hypercube[0].can_acess_pos[0] = 4;
-			hypercube[0].can_acess_pos[1] = 6;
+			hypercube[0].can_acess_pos[1] = 11;
 			hypercube[0].can_acess_pos[2] = 1;
-			hypercube[0].can_acess_pos[3] = 9;
-			
-			break;
-		case 6:
-			hypercube[0].can_acess_pos[0] = 5;
-			hypercube[0].can_acess_pos[1] = 7;
-			hypercube[0].can_acess_pos[2] = 2;
-			hypercube[0].can_acess_pos[3] = 10;
-			
-			break;
-		case 7:
-			hypercube[0].can_acess_pos[0] = 6;
-			hypercube[0].can_acess_pos[1] = 3;
-			hypercube[0].can_acess_pos[2] = 4;
-			hypercube[0].can_acess_pos[3] = 11;
-			
-			break;
-		case 8:
-			hypercube[0].can_acess_pos[0] = 9;
-			hypercube[0].can_acess_pos[1] = 4;
-			hypercube[0].can_acess_pos[2] = 11;
-			hypercube[0].can_acess_pos[3] = 12;
-			
-			break;
-		case 9:
-			hypercube[0].can_acess_pos[0] = 10;
-			hypercube[0].can_acess_pos[1] = 8;
-			hypercube[0].can_acess_pos[2] = 5;
-			hypercube[0].can_acess_pos[3] = 13;
-			
-			break;
-		case 10:
-			hypercube[0].can_acess_pos[0] = 11;
-			hypercube[0].can_acess_pos[1] = 9;
-			hypercube[0].can_acess_pos[2] = 6;
-			hypercube[0].can_acess_pos[3] = 14;
-			
-			break;
-		case 11:
-			hypercube[0].can_acess_pos[0] = 15;
-			hypercube[0].can_acess_pos[1] = 10;
-			hypercube[0].can_acess_pos[2] = 8;
-			hypercube[0].can_acess_pos[3] = 7;
-			
-			break;
-		case 12:
-			hypercube[0].can_acess_pos[0] = 0;
-			hypercube[0].can_acess_pos[1] = 13;
-			hypercube[0].can_acess_pos[2] = 15;
-			hypercube[0].can_acess_pos[3] = 0;
-			
-			break;
-		case 13:
-			hypercube[0].can_acess_pos[0] = 12;
-			hypercube[0].can_acess_pos[1] = 14;
-			hypercube[0].can_acess_pos[2] = 9;
-			hypercube[0].can_acess_pos[3] = 1;
-			
-			break;
-		case 14:
-			hypercube[0].can_acess_pos[0] = 13;
-			hypercube[0].can_acess_pos[1] = 15;
-			hypercube[0].can_acess_pos[2] = 10;
 			hypercube[0].can_acess_pos[3] = 2;
 			
 			break;
-		case 15:
+		case 4:
+			hypercube[0].can_acess_pos[0] = 12;
+			hypercube[0].can_acess_pos[1] = 0;
+			hypercube[0].can_acess_pos[2] = 6;
+			hypercube[0].can_acess_pos[3] = 5;
+			
+			break;
+		case 5:
+			hypercube[0].can_acess_pos[0] = 13;
+			hypercube[0].can_acess_pos[1] = 1;
+			hypercube[0].can_acess_pos[2] = 7;
+			hypercube[0].can_acess_pos[3] = 4;
+			
+			break;
+		case 6:
 			hypercube[0].can_acess_pos[0] = 14;
-			hypercube[0].can_acess_pos[1] = 11;
+			hypercube[0].can_acess_pos[1] = 2;
+			hypercube[0].can_acess_pos[2] = 4;
+			hypercube[0].can_acess_pos[3] = 7;
+			
+			break;
+		case 7:
+			hypercube[0].can_acess_pos[0] = 5;
+			hypercube[0].can_acess_pos[1] = 3;
+			hypercube[0].can_acess_pos[2] = 15;
+			hypercube[0].can_acess_pos[3] = 6;
+			
+			break;
+		case 8:
+			hypercube[0].can_acess_pos[0] = 10;
+			hypercube[0].can_acess_pos[1] = 0;
 			hypercube[0].can_acess_pos[2] = 12;
-			hypercube[0].can_acess_pos[3] = 3;
+			hypercube[0].can_acess_pos[3] = 9;
+			
+			break;
+		case 9:
+			hypercube[0].can_acess_pos[0] = 1;
+			hypercube[0].can_acess_pos[1] = 13;
+			hypercube[0].can_acess_pos[2] = 11;
+			hypercube[0].can_acess_pos[3] = 8;
+			
+			break;
+		case 10:
+			hypercube[0].can_acess_pos[0] = 2;
+			hypercube[0].can_acess_pos[1] = 14;
+			hypercube[0].can_acess_pos[2] = 8;
+			hypercube[0].can_acess_pos[3] = 11;
+			
+			break;
+		case 11:
+			hypercube[0].can_acess_pos[0] = 3;
+			hypercube[0].can_acess_pos[1] = 15;
+			hypercube[0].can_acess_pos[2] = 9;
+			hypercube[0].can_acess_pos[3] = 10;
+			
+			break;
+		case 12:
+			hypercube[0].can_acess_pos[0] = 8;
+			hypercube[0].can_acess_pos[1] = 14;
+			hypercube[0].can_acess_pos[2] = 4;
+			hypercube[0].can_acess_pos[3] = 13;
+			
+			break;
+		case 13:
+			hypercube[0].can_acess_pos[0] = 9;
+			hypercube[0].can_acess_pos[1] = 5;
+			hypercube[0].can_acess_pos[2] = 15;
+			hypercube[0].can_acess_pos[3] = 12;
+			
+			break;
+		case 14:
+			hypercube[0].can_acess_pos[0] = 15;
+			hypercube[0].can_acess_pos[1] = 6;
+			hypercube[0].can_acess_pos[2] = 10;
+			hypercube[0].can_acess_pos[3] = 12;
+			
+			break;
+		case 15:
+			hypercube[0].can_acess_pos[0] = 11;
+			hypercube[0].can_acess_pos[1] = 7;
+			hypercube[0].can_acess_pos[2] = 13;
+			hypercube[0].can_acess_pos[3] = 14;
 			
 			break;	
 		
@@ -229,9 +229,11 @@ void run_hypercube(cell_t hypercube[], int queue_hypercube_id, int queue_id)
     time_t start, end;
     double diff;
     message_t msg_rcv, msg_snd;
-    float start_sec, end_sec;
-    char start_string[100], end_string[100], diff_string[100];
-    int state, i;
+    // float start_sec, end_sec;
+    // char start_string[100], end_string[100];
+    char diff_string[100];
+    int state;
+    // int i;
 
     while( true )
     {   
@@ -246,7 +248,7 @@ void run_hypercube(cell_t hypercube[], int queue_hypercube_id, int queue_id)
         }
         
         
-        if(hypercube[0].my_pos != 12)
+        if(hypercube[0].my_pos != 1)
         {
             /* Send message to one conection at a time */
             msg_snd.pid = hypercube[0].can_acess_pos[0]+1;
@@ -269,7 +271,7 @@ void run_hypercube(cell_t hypercube[], int queue_hypercube_id, int queue_id)
         strcpy(msg_snd.filename, "\0");
 
         
-        if(hypercube[0].my_pos != 12)
+        if(hypercube[0].my_pos != 1)
         {
 			receive_message(&msg_rcv, queue_hypercube_id, hypercube[0].can_acess_pos[0]+1);
 			strcpy(msg_snd.filename, msg_rcv.filename);
@@ -306,12 +308,12 @@ int main(int argc, char *argv[])
 {
 
 	cell_t hypercube[1];
-	int i;
-	long pid;
+	// int i;
+	// long pid;
     int queue_hypercube_id, queue_id;
-    char *arg;
+    // char *arg;
 
-    pid = getpid();
+    // pid = getpid();
 
     queue_hypercube_id = retrieve_queue_id(1);
     queue_id = retrieve_queue_id(0);

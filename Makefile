@@ -7,6 +7,7 @@ CFLAGS = -g -Wall -Iinclude
 #
 # ------------- TARGETS DIRECTORIES ---------------- #
 #
+ROOT_DIR := $(realpath ./)
 INCLUDES =./include/data_structures.h
 BIN =./bin/
 SOURCE =./source/
@@ -20,9 +21,11 @@ SOURCE =./source/
 #
 # ------------- DEFINES THE EXECUTABLE FILES -------------- #
 #
-EXECS = escalonador executa_postergado fattree torus sleep
+EXECS = escalonador executa_postergado fattree torus hypercube sleeps30
+LINKS = escalonador executa_postergado fattree torus hypercube
 # include hypercube when it's done
 LIST = $(addprefix $(BIN), $(EXECS))
+LIST_LINKS = $(addprefix $(ROOT_DIR)/, $(LINKS))
 
 #
 # ------------- DEFINES THE COMPILATION STEPS -------------- #
@@ -35,8 +38,15 @@ all: 	$(LIST)
 $(BIN)%:	$(SOURCE)%.c | BIN_DIR
 	$(CC) $(INCLUDES) $< $(CFLAGS) -o $@
 
-BIN_DIR:
-	mkdir $(BIN)
+
+links:	$(LIST_LINKS)
+		@echo Symbolic links for main executables have been created in root folder
+
+$(ROOT_DIR)%:	$(BIN)%
+	ln -s $< $@
+
+
+
 #
 # ------------- BINDING '.c' TO '.o's ---------------------- #
 #
@@ -50,3 +60,6 @@ BIN_DIR:
 # 		makedepend $(INCLUDES) $^
 clean:	$(LIST)
 	rm -f $(LIST)
+
+BIN_DIR:
+	mkdir -p $(BIN)
