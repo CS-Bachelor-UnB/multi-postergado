@@ -1,3 +1,11 @@
+/*
+ * Authors: 
+ * André Luís Souto Ferreira 14/0016261
+ * Otto Kristian von Sperling 12/0131510
+ * Victor Fabre Figueiredo 15/0022948
+ * 
+ */
+
 #include "data_structures.h"
 
 
@@ -48,8 +56,6 @@ bool receive_message( message_t *message_received, int queue_id, long type )
 
    if( msgrcv( queue_id, message_received, sizeof( *message_received ) - sizeof( long ), type, MSG_NOERROR ) < 0 )
    {
-      // prints error message
-      //perror("RECEIVE_MESSAGE_ERROR");
       
       return false;
    }
@@ -65,8 +71,7 @@ bool send_message( message_t message_to_send, int queue_id)
 
    if( msgsnd( queue_id, &message_to_send, sizeof( message_to_send ) - sizeof( long ), 0 ) < 0 )
    {
-      // prints error message
-      //perror("SEND_MESSAGE_ERROR");
+
       exit( errno );
    }
 
@@ -217,7 +222,6 @@ void execute_program(char filename[50])
     {
         if ( execl(filename, filename, (char*)0) < 1 )
         {
-            //printf("hypercube_ERROR: execl returned error.\n");
             exit(1);
         }
     }
@@ -225,15 +229,13 @@ void execute_program(char filename[50])
 
 void run_hypercube(cell_t hypercube[], int queue_hypercube_id, int queue_id)
 {
-    //clock_t start, end;
+
     time_t start, end;
     double diff;
     message_t msg_rcv, msg_snd;
-    // float start_sec, end_sec;
-    // char start_string[100], end_string[100];
     char diff_string[100];
     int state;
-    // int i;
+
 
     while( true )
     {   
@@ -279,11 +281,6 @@ void run_hypercube(cell_t hypercube[], int queue_hypercube_id, int queue_id)
                   
 
         /* Creating string with start and end times */
-        /*sprintf(start_string, "%f", start_sec);
-        sprintf(end_string, "%f", end_sec);
-        strcat(end_string, "\n");
-        strcat(start_string, " ");
-        strcat(start_string, end_string);*/
         sprintf(diff_string, "%f", diff);
         strcat(diff_string, "\n");
 
@@ -308,12 +305,8 @@ int main(int argc, char *argv[])
 {
 
 	cell_t hypercube[1];
-	// int i;
-	// long pid;
     int queue_hypercube_id, queue_id;
-    // char *arg;
 
-    // pid = getpid();
 
     queue_hypercube_id = retrieve_queue_id(1);
     queue_id = retrieve_queue_id(0);

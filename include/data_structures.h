@@ -1,3 +1,11 @@
+/*
+ * Authors: 
+ * André Luís Souto Ferreira 14/0016261
+ * Otto Kristian von Sperling 12/0131510
+ * Victor Fabre Figueiredo 15/0022948
+ * 
+ */
+
 #include <time.h>
 #include <wait.h>
 #include <errno.h>
