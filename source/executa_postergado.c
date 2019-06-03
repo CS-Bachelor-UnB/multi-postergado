@@ -20,8 +20,7 @@ struct message
 };
 
 
-/* -------------------------- DEFINITON OF METHODS --------------------------------------------- #
-*/
+/* -------------------------- DEFINITON OF METHODS --------------------------------------------- */
 /*
 Main methods
 */
@@ -29,14 +28,13 @@ int retrieve_queue_id();
 bool send_message( message_t message_to_send, int queue_id );
 
 /*
-Auxiliary methods. Should these be protected/private?
+Auxiliary methods.
 */
 const char * parse_clarg_filename(int argc, char *argv[]);
 unsigned int parse_clarg_delay(int argc, char *argv[]);
 
 
-/* ------------------------- IMPLEMENTATION OF METHODS ---------------------------------------- #
-*/
+/* ------------------------- IMPLEMENTATION OF METHODS ---------------------------------------- */
 int retrieve_queue_id()
 {
    /*
@@ -82,8 +80,6 @@ const char * parse_clarg_filename( int argc, char *argv[] )
 {
    /*
    Returns a string with the filename passed as an argument in the command line, exits if input is not found.
-   FUTURE feature:
-      + suggests files in the project examples folder, exits after a number of failed attempts.
    */
    char * filename;
    extern int errno;
@@ -119,8 +115,6 @@ unsigned int parse_clarg_delay(int argc, char *argv[])
    /*
    Returns an integer that represents the delay in seconds passed as an argument in the command line,
    exits if input is not found.
-   FUTURE feature:
-      + sets a default delay if none given.
    */
    for( int optindex = 1; optindex < argc; optindex++ )
    {
@@ -175,19 +169,3 @@ int main(int argc, char *argv[])
 
    exit(0);
 }
-
-/*  
-   pid = fork();
-
-   if (pid == 0)
-   {
-   mensagem_env.pid = getpid();
-   strcpy(mensagem_env.msg, "teste de mensagem");
-   msgsnd(queue_id, &mensagem_env, sizeof(mensagem_env)-sizeof(long), 0);
-   exit (0);
-   }
-   msgsnd(queue_id, &message_to_send, sizeof(message_to_send)-sizeof(long), 0);      
-   msgrcv(queue_id, &mensagem_rec, sizeof(mensagem_rec)-sizeof(long), 0, 0);
-   printf("mensagem recebida = %ld %s\n", mensagem_rec.pid, mensagem_rec.msg);
-   // wait(&estado);
-*/
